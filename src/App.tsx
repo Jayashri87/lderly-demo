@@ -15,15 +15,17 @@ import {
   CalendarDays,
   TrendingUp,
   Brain,
-  Activity,
   Wallet,
-  RotateCcw,
-  Map,
   Crown,
   Gift,
-  Sparkles,
   ArrowUpRight,
+  Share2,
+  Users,
+  MessageCircle,
+  UserPlus,
+  Star,
 } from "lucide-react";
+import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 
 const checkpoints = [
   "Caretaker assigned",
@@ -36,32 +38,59 @@ const checkpoints = [
 ];
 
 const feedItems = [
-  { icon: Pill, title: "Medicine confirmed", subtitle: "Blister pack photo uploaded · 8:30 AM" },
-  { icon: Camera, title: "Proof of care", subtitle: "Smiling parent snapshot shared" },
-  { icon: Smile, title: "Mood update", subtitle: "Calm and socially engaged" },
-  { icon: AlertTriangle, title: "AI risk alert", subtitle: "Loneliness mild · recommend evening call" },
+  {
+    icon: Pill,
+    title: "Medicine confirmed",
+    subtitle: "Blister pack photo uploaded",
+    time: "2 mins ago",
+  },
+  {
+    icon: Camera,
+    title: "Proof of care",
+    subtitle: "Smiling parent snapshot shared",
+    time: "8:30 AM",
+  },
+  {
+    icon: Smile,
+    title: "Mood update",
+    subtitle: "Calm and socially engaged",
+    time: "Yesterday",
+  },
 ];
 
 const trendData = [92, 88, 90, 94, 93, 95, 96];
+const caretakerWhatsApp =
+  "https://wa.me/919999999999?text=Hi%20Priya,%20how%20is%20mom%20doing%20now%3F";
 
 export default function App() {
   const [activeTab, setActiveTab] = React.useState("today");
 
   const TodayScreen = () => (
     <div className="space-y-4">
-      <section className="rounded-[32px] bg-black text-white p-6 shadow-2xl">
-        <p className="text-xs uppercase tracking-[0.2em] opacity-60">Today’s reassurance</p>
-        <h1 className="text-4xl font-bold mt-2">Mom is safe 💚</h1>
-        <p className="text-sm opacity-70 mt-2">Last checked 2 mins ago</p>
+      <section className="rounded-[32px] bg-white p-5 shadow-xl">
+        <img
+          src="https://images.unsplash.com/photo-1581579438747-1dc8d17bbce4?q=80&w=1200"
+          alt="Parent"
+          className="w-full h-48 object-cover rounded-3xl"
+        />
+        <div className="mt-4">
+          <p className="text-sm text-zinc-500">Seen 2 mins ago · Priya checked in</p>
+          <h1 className="text-3xl font-bold mt-1">Mom is safe 💚</h1>
+        </div>
       </section>
 
       <section className="rounded-3xl bg-white p-5 shadow-lg">
         <h2 className="text-xl font-semibold">AI Risk Intelligence</h2>
         <div className="mt-4 flex flex-wrap gap-2">
-          <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">Fall Risk: Low</span>
-          <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-700">Loneliness: Mild</span>
-          <span className="rounded-full bg-sky-100 px-3 py-1 text-xs font-semibold text-sky-700">Adherence: Strong</span>
-          <span className="rounded-full bg-purple-100 px-3 py-1 text-xs font-semibold text-purple-700">Mood: Positive</span>
+          <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">
+            Fall Risk: Low
+          </span>
+          <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-700">
+            Loneliness: Mild
+          </span>
+          <span className="rounded-full bg-sky-100 px-3 py-1 text-xs font-semibold text-sky-700">
+            Adherence: Strong
+          </span>
         </div>
       </section>
 
@@ -72,27 +101,12 @@ export default function App() {
         </div>
         <div className="mt-4 flex items-end gap-2 h-24">
           {trendData.map((score, i) => (
-            <div key={i} className="flex-1 rounded-t-xl bg-black" style={{ height: `${score}%` }} />
+            <div
+              key={i}
+              className="flex-1 rounded-t-xl bg-black"
+              style={{ height: `${score}%` }}
+            />
           ))}
-        </div>
-      </section>
-
-      <section className="rounded-3xl border border-blue-100 bg-blue-50 p-5">
-        <div className="flex items-center gap-3">
-          <Brain className="w-5 h-5 text-blue-600" />
-          <p className="text-sm font-medium">Recommend adding 2 evening companion calls this week.</p>
-        </div>
-      </section>
-
-      <section className="rounded-3xl bg-white p-5 shadow-lg">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold">Tomorrow Schedule</h2>
-          <CalendarDays className="w-5 h-5 text-zinc-400" />
-        </div>
-        <div className="mt-4 space-y-3 text-sm text-zinc-700">
-          <div className="rounded-2xl bg-zinc-50 p-4">8:00 AM · Morning medicine + BP check</div>
-          <div className="rounded-2xl bg-zinc-50 p-4">11:00 AM · Caretaker revisit</div>
-          <div className="rounded-2xl bg-zinc-50 p-4">7:00 PM · Evening reassurance call</div>
         </div>
       </section>
     </div>
@@ -102,15 +116,38 @@ export default function App() {
     <div className="space-y-4">
       <section className="rounded-[32px] bg-white p-5 shadow-xl">
         <div className="flex items-center gap-4">
-          <div className="rounded-2xl bg-zinc-100 p-3"><User className="w-6 h-6" /></div>
+          <img
+            src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=400"
+            alt="Caretaker"
+            className="w-14 h-14 rounded-2xl object-cover"
+          />
           <div>
             <p className="font-semibold">Priya · Verified Caretaker</p>
-            <p className="text-sm text-zinc-500">Arriving in 14 mins</p>
-          </div>
-          <div className="ml-auto rounded-full bg-black text-white px-3 py-1 text-xs flex items-center gap-1">
-            <Clock3 className="w-3 h-3" /> ETA
+            <div className="flex items-center gap-2 text-sm text-zinc-500">
+              <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+              4.9 · 5 yrs exp · Arriving in 8 mins
+            </div>
           </div>
         </div>
+      </section>
+
+      <section className="rounded-3xl overflow-hidden shadow-lg">
+        <MapContainer
+          center={[12.9716, 77.7500]}
+          zoom={13}
+          style={{ height: "220px", width: "100%" }}
+        >
+          <TileLayer
+            attribution="&copy; OpenStreetMap contributors"
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          />
+          <Marker position={[12.9716, 77.7500]}>
+            <Popup>Senior Home</Popup>
+          </Marker>
+          <Marker position={[12.975, 77.755]}>
+            <Popup>Priya arriving in 8 mins</Popup>
+          </Marker>
+        </MapContainer>
       </section>
 
       <section className="rounded-3xl bg-white p-5 shadow-lg">
@@ -118,7 +155,11 @@ export default function App() {
         <div className="space-y-3">
           {checkpoints.map((item, idx) => (
             <div key={item} className="flex items-center gap-3">
-              <CheckCircle2 className={`w-5 h-5 ${idx < 4 ? "text-emerald-600" : "text-zinc-300"}`} />
+              <CheckCircle2
+                className={`w-5 h-5 ${
+                  idx < 4 ? "text-emerald-600" : "text-zinc-300"
+                }`}
+              />
               <p className="text-sm text-zinc-700">{item}</p>
             </div>
           ))}
@@ -133,26 +174,31 @@ export default function App() {
         const Icon = item.icon;
         return (
           <div key={item.title} className="rounded-3xl bg-white p-5 shadow-lg">
-            <div className="flex items-start gap-3">
-              <div className="rounded-xl bg-zinc-100 p-2"><Icon className="w-4 h-4" /></div>
-              <div>
-                <p className="text-sm font-semibold">{item.title}</p>
-                <p className="text-xs text-zinc-500 mt-1">{item.subtitle}</p>
+            <div className="flex items-start justify-between">
+              <div className="flex items-start gap-3">
+                <div className="rounded-xl bg-zinc-100 p-2">
+                  <Icon className="w-4 h-4" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold">{item.title}</p>
+                  <p className="text-xs text-zinc-500 mt-1">{item.subtitle}</p>
+                </div>
               </div>
+              <span className="text-[10px] text-zinc-400">{item.time}</span>
             </div>
           </div>
         );
       })}
 
-      <section className="rounded-3xl border border-amber-100 bg-amber-50 p-5">
-        <div className="flex items-center gap-3">
-          <Sparkles className="w-5 h-5 text-amber-600" />
-          <div>
-            <p className="font-semibold">Upgrade Moment</p>
-            <p className="text-xs text-zinc-500 mt-1">Missed dose premium monitoring available</p>
-          </div>
-        </div>
-      </section>
+      <a
+        href={caretakerWhatsApp}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="rounded-3xl bg-green-500 text-white p-5 flex items-center gap-3 shadow-lg"
+      >
+        <MessageCircle className="w-5 h-5" />
+        Chat with caretaker on WhatsApp
+      </a>
     </div>
   );
 
@@ -171,54 +217,19 @@ export default function App() {
         </div>
       </section>
 
-      <section className="rounded-3xl bg-white p-5 shadow-lg">
-        <h2 className="text-xl font-semibold">Premium Concierge Plans</h2>
-        <div className="mt-4 space-y-3">
-          <div className="rounded-2xl bg-zinc-50 p-4 flex items-center justify-between">
-            <div>
-              <p className="font-semibold">Essential Care</p>
-              <p className="text-xs text-zinc-500">Visits + medicine loop</p>
-            </div>
-            <Crown className="w-4 h-4" />
-          </div>
-          <div className="rounded-2xl bg-amber-50 border border-amber-100 p-4 flex items-center justify-between">
-            <div>
-              <p className="font-semibold">NRI Concierge</p>
-              <p className="text-xs text-zinc-500">Daily calls + doctor escalation</p>
-            </div>
-            <Crown className="w-4 h-4 text-amber-600" />
-          </div>
-          <div className="rounded-2xl bg-zinc-50 p-4 flex items-center justify-between">
-            <div>
-              <p className="font-semibold">Doctor-on-call</p>
-              <p className="text-xs text-zinc-500">Emergency response add-on</p>
-            </div>
-            <Crown className="w-4 h-4" />
-          </div>
-        </div>
-      </section>
-
-      <section className="rounded-3xl border border-emerald-100 bg-emerald-50 p-5">
+      <section className="rounded-3xl border border-orange-100 bg-orange-50 p-5">
         <div className="flex items-center gap-3">
-          <Gift className="w-5 h-5 text-emerald-700" />
+          <Users className="w-5 h-5 text-orange-600" />
           <div>
-            <p className="font-semibold">Festival Gift Care</p>
-            <p className="text-xs text-zinc-500 mt-1">Gift 3 care visits to parents this festival</p>
+            <p className="font-semibold">Family Network</p>
+            <p className="text-xs text-zinc-500 mt-1">
+              Add sibling, spouse, doctor, emergency contact
+            </p>
           </div>
         </div>
       </section>
     </div>
   );
-
-  const renderContent = () => {
-    switch (activeTab) {
-      case "today": return <TodayScreen />;
-      case "care": return <JourneyScreen />;
-      case "updates": return <FeedScreen />;
-      case "control": return <ControlScreen />;
-      default: return <TodayScreen />;
-    }
-  };
 
   const tabs = [
     { key: "today", label: "Today", icon: Home },
@@ -227,13 +238,35 @@ export default function App() {
     { key: "control", label: "Control", icon: Settings },
   ];
 
+  const renderContent = () => {
+    switch (activeTab) {
+      case "today":
+        return <TodayScreen />;
+      case "care":
+        return <JourneyScreen />;
+      case "updates":
+        return <FeedScreen />;
+      case "control":
+        return <ControlScreen />;
+      default:
+        return <TodayScreen />;
+    }
+  };
+
   return (
     <div className="min-h-screen bg-zinc-100 flex justify-center">
-      <div className="w-full max-w-md min-h-screen p-4 pb-28">
+      <div className="w-full max-w-md min-h-screen p-4 pb-32">
         {renderContent()}
-        <button className="fixed bottom-24 right-6 rounded-full bg-red-500 text-white p-4 shadow-2xl animate-pulse">
-          <ShieldAlert className="w-6 h-6" />
-        </button>
+
+        <div className="fixed bottom-24 right-6">
+          <button className="rounded-full bg-red-500 text-white p-4 shadow-2xl animate-pulse">
+            <ShieldAlert className="w-6 h-6" />
+          </button>
+          <p className="text-[10px] text-zinc-500 mt-2 text-center">
+            Alerts family + doctor
+          </p>
+        </div>
+
         <nav className="fixed bottom-0 left-0 right-0 p-4">
           <div className="max-w-md mx-auto grid grid-cols-4 rounded-3xl bg-white p-2 shadow-2xl">
             {tabs.map((tab) => {
