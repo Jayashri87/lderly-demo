@@ -5,65 +5,44 @@ import {
   Bell,
   Settings,
   ShieldAlert,
-  Pill,
-  Smile,
-  Camera,
-  Clock3,
-  User,
-  CheckCircle2,
-  AlertTriangle,
-  CalendarDays,
   TrendingUp,
-  Brain,
-  Wallet,
-  Crown,
-  Gift,
-  ArrowUpRight,
-  Share2,
-  Users,
   MessageCircle,
-  UserPlus,
+  Users,
+  Wallet,
+  ArrowUpRight,
   Star,
+  CheckCircle2,
 } from "lucide-react";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
-
-const checkpoints = [
-  "Caretaker assigned",
-  "En route",
-  "Checked in",
-  "Medicines done",
-  "Walk completed",
-  "Photo proof uploaded",
-  "AI summary sent",
-];
-
-const feedItems = [
-  {
-    icon: Pill,
-    title: "Medicine confirmed",
-    subtitle: "Blister pack photo uploaded",
-    time: "2 mins ago",
-  },
-  {
-    icon: Camera,
-    title: "Proof of care",
-    subtitle: "Smiling parent snapshot shared",
-    time: "8:30 AM",
-  },
-  {
-    icon: Smile,
-    title: "Mood update",
-    subtitle: "Calm and socially engaged",
-    time: "Yesterday",
-  },
-];
-
-const trendData = [92, 88, 90, 94, 93, 95, 96];
-const caretakerWhatsApp =
-  "https://wa.me/919999999999?text=Hi%20Priya,%20how%20is%20mom%20doing%20now%3F";
+import {
+  getParentStatus,
+  getJourneyData,
+  getControlData,
+  getFeedData,
+} from "./services/firebase/liveData";
 
 export default function App() {
   const [activeTab, setActiveTab] = React.useState("today");
+  const [parentStatus, setParentStatus] = React.useState<any>(null);
+  const [journey, setJourney] = React.useState<any>(null);
+  const [control, setControl] = React.useState<any>(null);
+  const [feed, setFeed] = React.useState<any[]>([]);
+
+  React.useEffect(() => {
+    async function loadData() {
+      const parent = await getParentStatus();
+      const journeyData = await getJourneyData();
+      const controlData = await getControlData();
+      const feedData = await getFeedData();
+
+      setParentStatus(parent);
+      setJourney(journeyData);
+      setControl(controlData);
+      setFeed(feedData);
+    }
+
+    loadData();
+  }, []);
 
   const TodayScreen = () => (
     <div className="space-y-4">
@@ -74,23 +53,12 @@ export default function App() {
           className="w-full h-48 object-cover rounded-3xl"
         />
         <div className="mt-4">
-          <p className="text-sm text-zinc-500">Seen 2 mins ago · Priya checked in</p>
-          <h1 className="text-3xl font-bold mt-1">Mom is safe 💚</h1>
-        </div>
-      </section>
-
-      <section className="rounded-3xl bg-white p-5 shadow-lg">
-        <h2 className="text-xl font-semibold">AI Risk Intelligence</h2>
-        <div className="mt-4 flex flex-wrap gap-2">
-          <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">
-            Fall Risk: Low
-          </span>
-          <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-700">
-            Loneliness: Mild
-          </span>
-          <span className="rounded-full bg-sky-100 px-3 py-1 text-xs font-semibold text-sky-700">
-            Adherence: Strong
-          </span>
+          <p className="text-sm text-zinc-500">
+            Seen {parentStatus?.lastSeen} · Safe: {parentStatus?.safe ? "Yes" : "No"}
+          </p>
+          <h1 className="text-3xl font-bold mt-1">
+            {parentStatus?.name || "Parent"} is safe 💚
+          </h1>
         </div>
       </section>
 
@@ -100,7 +68,7 @@ export default function App() {
           <TrendingUp className="w-5 h-5 text-zinc-400" />
         </div>
         <div className="mt-4 flex items-end gap-2 h-24">
-          {trendData.map((score, i) => (
+          {[92, 88, 90, 94, 93, 95, 96].map((score, i) => (
             <div
               key={i}
               className="flex-1 rounded-t-xl bg-black"
@@ -122,44 +90,46 @@ export default function App() {
             className="w-14 h-14 rounded-2xl object-cover"
           />
           <div>
-            <p className="font-semibold">Priya · Verified Caretaker</p>
+            <p className="font-semibold">
+              {journey?.caretakerName} · Verified Caretaker
+            </p>
             <div className="flex items-center gap-2 text-sm text-zinc-500">
               <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-              4.9 · 5 yrs exp · Arriving in 8 mins
+              {journey?.rating} · Arriving in {journey?.eta}
             </div>
           </div>
         </div>
       </section>
 
       <section className="rounded-3xl overflow-hidden shadow-lg">
-        <MapContainer
-          center={[12.9716, 77.7500]}
-          zoom={13}
-          style={{ height: "220px", width: "100%" }}
-        >
-          <TileLayer
-            attribution="&copy; OpenStreetMap contributors"
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          />
-          <Marker position={[12.9716, 77.7500]}>
-            <Popup>Senior Home</Popup>
-          </Marker>
-          <Marker position={[12.975, 77.755]}>
-            <Popup>Priya arriving in 8 mins</Popup>
-          </Marker>
-        </MapContainer>
+        {journey && (
+          <MapContainer
+            center={[journey.lat, journey.lng]}
+            zoom={13}
+            style={{ height: "220px", width: "100%" }}
+          >
+            <TileLayer
+              attribution="&copy; OpenStreetMap contributors"
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            />
+            <Marker position={[journey.lat, journey.lng]}>
+              <Popup>{journey.caretakerName} arriving in {journey.eta}</Popup>
+            </Marker>
+          </MapContainer>
+        )}
       </section>
 
       <section className="rounded-3xl bg-white p-5 shadow-lg">
         <h2 className="text-xl font-semibold mb-4">Live Care Journey</h2>
         <div className="space-y-3">
-          {checkpoints.map((item, idx) => (
+          {[
+            "Caretaker assigned",
+            "En route",
+            "Checked in",
+            "Medicines done",
+          ].map((item) => (
             <div key={item} className="flex items-center gap-3">
-              <CheckCircle2
-                className={`w-5 h-5 ${
-                  idx < 4 ? "text-emerald-600" : "text-zinc-300"
-                }`}
-              />
+              <CheckCircle2 className="w-5 h-5 text-emerald-600" />
               <p className="text-sm text-zinc-700">{item}</p>
             </div>
           ))}
@@ -170,28 +140,16 @@ export default function App() {
 
   const FeedScreen = () => (
     <div className="space-y-4">
-      {feedItems.map((item) => {
-        const Icon = item.icon;
-        return (
-          <div key={item.title} className="rounded-3xl bg-white p-5 shadow-lg">
-            <div className="flex items-start justify-between">
-              <div className="flex items-start gap-3">
-                <div className="rounded-xl bg-zinc-100 p-2">
-                  <Icon className="w-4 h-4" />
-                </div>
-                <div>
-                  <p className="text-sm font-semibold">{item.title}</p>
-                  <p className="text-xs text-zinc-500 mt-1">{item.subtitle}</p>
-                </div>
-              </div>
-              <span className="text-[10px] text-zinc-400">{item.time}</span>
-            </div>
-          </div>
-        );
-      })}
+      {feed.map((item) => (
+        <div key={item.id} className="rounded-3xl bg-white p-5 shadow-lg">
+          <p className="text-sm font-semibold">{item.title}</p>
+          <p className="text-xs text-zinc-500 mt-1">{item.subtitle}</p>
+          <span className="text-[10px] text-zinc-400">{item.time}</span>
+        </div>
+      ))}
 
       <a
-        href={caretakerWhatsApp}
+        href="https://wa.me/919999999999?text=Hi%20Priya,%20how%20is%20mom%20doing%20now%3F"
         target="_blank"
         rel="noopener noreferrer"
         className="rounded-3xl bg-green-500 text-white p-5 flex items-center gap-3 shadow-lg"
@@ -208,12 +166,12 @@ export default function App() {
         <div className="rounded-3xl bg-white p-4 shadow-lg">
           <Wallet className="w-5 h-5 mb-2" />
           <p className="text-xs text-zinc-500">ARPU Today</p>
-          <p className="text-2xl font-bold">₹1,240</p>
+          <p className="text-2xl font-bold">₹{control?.arpu}</p>
         </div>
         <div className="rounded-3xl bg-white p-4 shadow-lg">
           <ArrowUpRight className="w-5 h-5 mb-2" />
           <p className="text-xs text-zinc-500">Upgrades</p>
-          <p className="text-2xl font-bold">12</p>
+          <p className="text-2xl font-bold">{control?.upgrades}</p>
         </div>
       </section>
 
