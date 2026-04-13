@@ -6,7 +6,6 @@ import {
   Settings,
   ShieldAlert,
   Pill,
-  Footprints,
   Smile,
   Camera,
   Clock3,
@@ -16,6 +15,14 @@ import {
   CalendarDays,
   TrendingUp,
   Brain,
+  Activity,
+  Wallet,
+  RotateCcw,
+  Map,
+  Crown,
+  Gift,
+  Sparkles,
+  ArrowUpRight,
 } from "lucide-react";
 
 const checkpoints = [
@@ -35,15 +42,7 @@ const feedItems = [
   { icon: AlertTriangle, title: "AI risk alert", subtitle: "Loneliness mild · recommend evening call" },
 ];
 
-const trendData = [
-  { day: "M", score: 92 },
-  { day: "T", score: 88 },
-  { day: "W", score: 90 },
-  { day: "T", score: 94 },
-  { day: "F", score: 93 },
-  { day: "S", score: 95 },
-  { day: "S", score: 96 },
-];
+const trendData = [92, 88, 90, 94, 93, 95, 96];
 
 export default function App() {
   const [activeTab, setActiveTab] = React.useState("today");
@@ -51,31 +50,18 @@ export default function App() {
   const TodayScreen = () => (
     <div className="space-y-4">
       <section className="rounded-[32px] bg-black text-white p-6 shadow-2xl">
-        <div className="flex items-start justify-between">
-          <div>
-            <p className="text-xs uppercase tracking-[0.2em] opacity-60">Today’s reassurance</p>
-            <h1 className="text-4xl font-bold mt-2">Mom is safe 💚</h1>
-            <p className="text-sm opacity-70 mt-2">Last checked 2 mins ago</p>
-          </div>
-          <span className="text-xs bg-white/10 rounded-full px-3 py-1">ETA 14 min</span>
-        </div>
+        <p className="text-xs uppercase tracking-[0.2em] opacity-60">Today’s reassurance</p>
+        <h1 className="text-4xl font-bold mt-2">Mom is safe 💚</h1>
+        <p className="text-sm opacity-70 mt-2">Last checked 2 mins ago</p>
       </section>
 
       <section className="rounded-3xl bg-white p-5 shadow-lg">
         <h2 className="text-xl font-semibold">AI Risk Intelligence</h2>
         <div className="mt-4 flex flex-wrap gap-2">
-          <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">
-            Fall Risk: Low
-          </span>
-          <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-700">
-            Loneliness: Mild
-          </span>
-          <span className="rounded-full bg-sky-100 px-3 py-1 text-xs font-semibold text-sky-700">
-            Adherence: Strong
-          </span>
-          <span className="rounded-full bg-purple-100 px-3 py-1 text-xs font-semibold text-purple-700">
-            Mood: Positive
-          </span>
+          <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">Fall Risk: Low</span>
+          <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-700">Loneliness: Mild</span>
+          <span className="rounded-full bg-sky-100 px-3 py-1 text-xs font-semibold text-sky-700">Adherence: Strong</span>
+          <span className="rounded-full bg-purple-100 px-3 py-1 text-xs font-semibold text-purple-700">Mood: Positive</span>
         </div>
       </section>
 
@@ -84,30 +70,17 @@ export default function App() {
           <h2 className="text-xl font-semibold">7-Day Wellness Trend</h2>
           <TrendingUp className="w-5 h-5 text-zinc-400" />
         </div>
-        <div className="mt-4 flex items-end justify-between gap-2 h-24">
-          {trendData.map((item) => (
-            <div key={item.day} className="flex flex-col items-center gap-2 flex-1">
-              <div
-                className="w-full rounded-t-xl bg-black"
-                style={{ height: `${item.score}%` }}
-              />
-              <span className="text-[10px] text-zinc-500">{item.day}</span>
-            </div>
+        <div className="mt-4 flex items-end gap-2 h-24">
+          {trendData.map((score, i) => (
+            <div key={i} className="flex-1 rounded-t-xl bg-black" style={{ height: `${score}%` }} />
           ))}
         </div>
       </section>
 
       <section className="rounded-3xl border border-blue-100 bg-blue-50 p-5">
         <div className="flex items-center gap-3">
-          <div className="rounded-2xl bg-white p-3 shadow-sm">
-            <Brain className="w-5 h-5 text-blue-600" />
-          </div>
-          <div>
-            <p className="font-semibold text-zinc-800">AI Recommendation</p>
-            <p className="text-xs text-zinc-500 mt-1">
-              Recommend adding 2 evening companion calls this week.
-            </p>
-          </div>
+          <Brain className="w-5 h-5 text-blue-600" />
+          <p className="text-sm font-medium">Recommend adding 2 evening companion calls this week.</p>
         </div>
       </section>
 
@@ -116,16 +89,10 @@ export default function App() {
           <h2 className="text-xl font-semibold">Tomorrow Schedule</h2>
           <CalendarDays className="w-5 h-5 text-zinc-400" />
         </div>
-        <div className="mt-4 space-y-3">
-          <div className="rounded-2xl bg-zinc-50 p-4 text-sm text-zinc-700">
-            8:00 AM · Morning medicine + BP check
-          </div>
-          <div className="rounded-2xl bg-zinc-50 p-4 text-sm text-zinc-700">
-            11:00 AM · Caretaker revisit
-          </div>
-          <div className="rounded-2xl bg-zinc-50 p-4 text-sm text-zinc-700">
-            7:00 PM · Evening reassurance call
-          </div>
+        <div className="mt-4 space-y-3 text-sm text-zinc-700">
+          <div className="rounded-2xl bg-zinc-50 p-4">8:00 AM · Morning medicine + BP check</div>
+          <div className="rounded-2xl bg-zinc-50 p-4">11:00 AM · Caretaker revisit</div>
+          <div className="rounded-2xl bg-zinc-50 p-4">7:00 PM · Evening reassurance call</div>
         </div>
       </section>
     </div>
@@ -176,12 +143,70 @@ export default function App() {
           </div>
         );
       })}
+
+      <section className="rounded-3xl border border-amber-100 bg-amber-50 p-5">
+        <div className="flex items-center gap-3">
+          <Sparkles className="w-5 h-5 text-amber-600" />
+          <div>
+            <p className="font-semibold">Upgrade Moment</p>
+            <p className="text-xs text-zinc-500 mt-1">Missed dose premium monitoring available</p>
+          </div>
+        </div>
+      </section>
     </div>
   );
 
   const ControlScreen = () => (
-    <div className="rounded-3xl bg-white p-6 shadow-lg">
-      Billing, concierge upgrades, emergency contacts, doctor preferences, and admin controls.
+    <div className="space-y-4">
+      <section className="grid grid-cols-2 gap-3">
+        <div className="rounded-3xl bg-white p-4 shadow-lg">
+          <Wallet className="w-5 h-5 mb-2" />
+          <p className="text-xs text-zinc-500">ARPU Today</p>
+          <p className="text-2xl font-bold">₹1,240</p>
+        </div>
+        <div className="rounded-3xl bg-white p-4 shadow-lg">
+          <ArrowUpRight className="w-5 h-5 mb-2" />
+          <p className="text-xs text-zinc-500">Upgrades</p>
+          <p className="text-2xl font-bold">12</p>
+        </div>
+      </section>
+
+      <section className="rounded-3xl bg-white p-5 shadow-lg">
+        <h2 className="text-xl font-semibold">Premium Concierge Plans</h2>
+        <div className="mt-4 space-y-3">
+          <div className="rounded-2xl bg-zinc-50 p-4 flex items-center justify-between">
+            <div>
+              <p className="font-semibold">Essential Care</p>
+              <p className="text-xs text-zinc-500">Visits + medicine loop</p>
+            </div>
+            <Crown className="w-4 h-4" />
+          </div>
+          <div className="rounded-2xl bg-amber-50 border border-amber-100 p-4 flex items-center justify-between">
+            <div>
+              <p className="font-semibold">NRI Concierge</p>
+              <p className="text-xs text-zinc-500">Daily calls + doctor escalation</p>
+            </div>
+            <Crown className="w-4 h-4 text-amber-600" />
+          </div>
+          <div className="rounded-2xl bg-zinc-50 p-4 flex items-center justify-between">
+            <div>
+              <p className="font-semibold">Doctor-on-call</p>
+              <p className="text-xs text-zinc-500">Emergency response add-on</p>
+            </div>
+            <Crown className="w-4 h-4" />
+          </div>
+        </div>
+      </section>
+
+      <section className="rounded-3xl border border-emerald-100 bg-emerald-50 p-5">
+        <div className="flex items-center gap-3">
+          <Gift className="w-5 h-5 text-emerald-700" />
+          <div>
+            <p className="font-semibold">Festival Gift Care</p>
+            <p className="text-xs text-zinc-500 mt-1">Gift 3 care visits to parents this festival</p>
+          </div>
+        </div>
+      </section>
     </div>
   );
 
