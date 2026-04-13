@@ -1,0 +1,63 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() &&
+        firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    function getVisit(visitId) {
+      return firestore.get(/databases/(default)/documents/visits/$(visitId)).data;
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    // Visit Proofs (Photos/Videos)
+    match /visits/{visitId}/{fileName} {
+      allow read: if isAuthenticated() && (
+        getVisit(visitId).familyUid == request.auth.uid ||
+        getVisit(visitId).caretakerId == request.auth.uid ||
+        isAdmin()
+      );
+      allow write: if isAuthenticated() && (
+        getVisit(visitId).caretakerId == request.auth.uid &&
+        request.resource.size < 5 * 1024 * 1024 && // 5MB limit
+        request.resource.contentType.matches('image/.*|video/.*')
+      );
+    }
+
+    // Invoices
+    match /invoices/{userId}/{fileName} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow write: if isAdmin();
+    }
+
+    // User Profiles
+    match /profiles/{userId}/{fileName} {
+      allow read: if isAuthenticated();
+      allow write: if isOwner(userId) &&
+                    request.resource.size < 2 * 1024 * 1024 && // 2MB limit
+                    request.resource.contentType.matches('image/.*');
+    }
+
+    // Default Deny
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

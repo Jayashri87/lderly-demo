@@ -1,0 +1,6 @@
+{
+  "name": "LDERLY",
+  "description": "Premium elderly companionship and care services in Bangalore. Connecting families with trusted caretakers for companionship, hospital assistance, and wellness monitoring.",
+  "requestFramePermissions": ["microphone", "camera", "geolocation"],
+  "majorCapabilities": []
+}

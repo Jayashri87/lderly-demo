@@ -1,0 +1,117 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "A user of the LDERLY platform (Family, Senior, Caretaker, or Admin)",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "role": { "type": "string", "enum": ["family", "senior", "caretaker", "admin"] },
+        "phone": { "type": "string" },
+        "cityZone": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "name", "email", "role"]
+    },
+    "Subscription": {
+      "title": "Subscription",
+      "description": "User care plan subscription",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "planId": { "type": "string" },
+        "status": { "type": "string", "enum": ["active", "past_due", "canceled"] },
+        "nextBillingAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "userId", "planId", "status"]
+    },
+    "Invoice": {
+      "title": "Invoice",
+      "description": "Payment invoice",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "amount": { "type": "number" },
+        "status": { "type": "string", "enum": ["paid", "pending", "failed"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "pdfUrl": { "type": "string" }
+      },
+      "required": ["id", "userId", "amount", "status"]
+    },
+    "AuditLog": {
+      "title": "Audit Log",
+      "description": "System audit trail",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "action": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "metadata": { "type": "object" }
+      },
+      "required": ["id", "action", "timestamp"]
+    },
+    "Parent": {
+      "title": "Parent",
+      "description": "The elderly person receiving care",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "familyUid": { "type": "string" },
+        "name": { "type": "string" },
+        "age": { "type": "number" },
+        "address": { "type": "string" },
+        "healthProfile": { "type": "object" },
+        "wellnessScore": { "type": "number" },
+        "moodHistory": { "type": "array" }
+      },
+      "required": ["id", "familyUid", "name"]
+    },
+    "Visit": {
+      "title": "Visit",
+      "description": "A companionship or care visit",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "parentId": { "type": "string" },
+        "caretakerId": { "type": "string" },
+        "scheduledAt": { "type": "string", "format": "date-time" },
+        "status": { "type": "string", "enum": ["scheduled", "in-progress", "completed", "cancelled"] },
+        "checkInTime": { "type": "string", "format": "date-time" },
+        "checkOutTime": { "type": "string", "format": "date-time" },
+        "notes": { "type": "string" },
+        "mood": { "type": "number" },
+        "photoUrl": { "type": "string" },
+        "videoUrl": { "type": "string" }
+      },
+      "required": ["id", "parentId", "scheduledAt", "status"]
+    },
+    "SOSAlert": {
+      "title": "SOS Alert",
+      "description": "Emergency SOS trigger",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "parentId": { "type": "string" },
+        "triggeredBy": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "status": { "type": "string", "enum": ["active", "resolved"] },
+        "resolutionNotes": { "type": "string" }
+      },
+      "required": ["id", "parentId", "timestamp", "status"]
+    }
+  },
+  "firestore": {
+    "/users/{uid}": { "schema": "User", "description": "User profiles" },
+    "/parents/{parentId}": { "schema": "Parent", "description": "Elderly profiles" },
+    "/visits/{visitId}": { "schema": "Visit", "description": "Visit logs" },
+    "/sos_alerts/{alertId}": { "schema": "SOSAlert", "description": "Emergency alerts" },
+    "/subscriptions/{subId}": { "schema": "Subscription", "description": "User subscriptions" },
+    "/invoices/{invId}": { "schema": "Invoice", "description": "User invoices" },
+    "/audit_logs/{logId}": { "schema": "AuditLog", "description": "System audit logs" }
+  }
+}
