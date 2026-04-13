@@ -12,17 +12,11 @@ import {
   Clock3,
   User,
   CheckCircle2,
-  Mic,
   AlertTriangle,
-  ChevronRight,
   CalendarDays,
+  TrendingUp,
+  Brain,
 } from "lucide-react";
-
-const careEvents = [
-  { icon: Pill, text: "Morning medicines completed", time: "8:30 AM" },
-  { icon: Footprints, text: "Walk completed · 1,240 steps", time: "9:10 AM" },
-  { icon: Smile, text: "Mood calm and engaged", time: "9:25 AM" },
-];
 
 const checkpoints = [
   "Caretaker assigned",
@@ -41,6 +35,16 @@ const feedItems = [
   { icon: AlertTriangle, title: "AI risk alert", subtitle: "Loneliness mild · recommend evening call" },
 ];
 
+const trendData = [
+  { day: "M", score: 92 },
+  { day: "T", score: 88 },
+  { day: "W", score: 90 },
+  { day: "T", score: 94 },
+  { day: "F", score: 93 },
+  { day: "S", score: 95 },
+  { day: "S", score: 96 },
+];
+
 export default function App() {
   const [activeTab, setActiveTab] = React.useState("today");
 
@@ -55,39 +59,54 @@ export default function App() {
           </div>
           <span className="text-xs bg-white/10 rounded-full px-3 py-1">ETA 14 min</span>
         </div>
-        <button className="mt-5 w-full rounded-2xl bg-white text-black py-4 font-semibold">
-          Track Live Care
-        </button>
+      </section>
+
+      <section className="rounded-3xl bg-white p-5 shadow-lg">
+        <h2 className="text-xl font-semibold">AI Risk Intelligence</h2>
+        <div className="mt-4 flex flex-wrap gap-2">
+          <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">
+            Fall Risk: Low
+          </span>
+          <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-700">
+            Loneliness: Mild
+          </span>
+          <span className="rounded-full bg-sky-100 px-3 py-1 text-xs font-semibold text-sky-700">
+            Adherence: Strong
+          </span>
+          <span className="rounded-full bg-purple-100 px-3 py-1 text-xs font-semibold text-purple-700">
+            Mood: Positive
+          </span>
+        </div>
       </section>
 
       <section className="rounded-3xl bg-white p-5 shadow-lg">
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold">Medicine Loop</h2>
-          <span className="text-xs text-emerald-600 font-semibold">7 day streak</span>
+          <h2 className="text-xl font-semibold">7-Day Wellness Trend</h2>
+          <TrendingUp className="w-5 h-5 text-zinc-400" />
         </div>
-        <div className="mt-4 space-y-3">
-          <div className="rounded-2xl bg-zinc-50 p-4 flex items-center justify-between">
-            <div>
-              <p className="text-sm font-semibold">Next dose due</p>
-              <p className="text-xs text-zinc-500">Vitamin D · 8:00 PM</p>
+        <div className="mt-4 flex items-end justify-between gap-2 h-24">
+          {trendData.map((item) => (
+            <div key={item.day} className="flex flex-col items-center gap-2 flex-1">
+              <div
+                className="w-full rounded-t-xl bg-black"
+                style={{ height: `${item.score}%` }}
+              />
+              <span className="text-[10px] text-zinc-500">{item.day}</span>
             </div>
-            <div className="rounded-full bg-amber-100 text-amber-700 px-3 py-1 text-xs">Due soon</div>
-          </div>
+          ))}
+        </div>
+      </section>
 
-          <div className="rounded-2xl bg-zinc-50 p-4 flex items-center justify-between">
-            <div>
-              <p className="text-sm font-semibold">Refill reminder</p>
-              <p className="text-xs text-zinc-500">Blood pressure meds · 2 days left</p>
-            </div>
-            <Pill className="w-4 h-4 text-zinc-500" />
+      <section className="rounded-3xl border border-blue-100 bg-blue-50 p-5">
+        <div className="flex items-center gap-3">
+          <div className="rounded-2xl bg-white p-3 shadow-sm">
+            <Brain className="w-5 h-5 text-blue-600" />
           </div>
-
-          <div className="rounded-2xl bg-red-50 border border-red-100 p-4 flex items-center justify-between">
-            <div>
-              <p className="text-sm font-semibold text-red-700">Missed dose alert</p>
-              <p className="text-xs text-zinc-500">Caregiver notified · escalation in 20 mins</p>
-            </div>
-            <AlertTriangle className="w-4 h-4 text-red-500" />
+          <div>
+            <p className="font-semibold text-zinc-800">AI Recommendation</p>
+            <p className="text-xs text-zinc-500 mt-1">
+              Recommend adding 2 evening companion calls this week.
+            </p>
           </div>
         </div>
       </section>
@@ -126,6 +145,7 @@ export default function App() {
           </div>
         </div>
       </section>
+
       <section className="rounded-3xl bg-white p-5 shadow-lg">
         <h2 className="text-xl font-semibold mb-4">Live Care Journey</h2>
         <div className="space-y-3">
