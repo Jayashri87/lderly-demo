@@ -1,5 +1,21 @@
 import * as React from "react";
-import { Home, MapPinned, Bell, Settings, ShieldAlert, Pill, Footprints, Smile } from "lucide-react";
+import {
+  Home,
+  MapPinned,
+  Bell,
+  Settings,
+  ShieldAlert,
+  Pill,
+  Footprints,
+  Smile,
+  Camera,
+  Clock3,
+  User,
+  CheckCircle2,
+  Mic,
+  AlertTriangle,
+  ChevronRight,
+} from "lucide-react";
 
 const careEvents = [
   { icon: Pill, text: "Morning medicines completed", time: "8:30 AM" },
@@ -7,10 +23,27 @@ const careEvents = [
   { icon: Smile, text: "Mood calm and engaged", time: "9:25 AM" },
 ];
 
+const checkpoints = [
+  "Caretaker assigned",
+  "En route",
+  "Checked in",
+  "Medicines done",
+  "Walk completed",
+  "Photo proof uploaded",
+  "AI summary sent",
+];
+
+const feedItems = [
+  { icon: Pill, title: "Medicine confirmed", subtitle: "Blister pack photo uploaded · 8:30 AM" },
+  { icon: Camera, title: "Proof of care", subtitle: "Smiling parent snapshot shared" },
+  { icon: Smile, title: "Mood update", subtitle: "Calm and socially engaged" },
+  { icon: AlertTriangle, title: "AI risk alert", subtitle: "Loneliness mild · recommend evening call" },
+];
+
 export default function App() {
   const [activeTab, setActiveTab] = React.useState("today");
 
-  const renderToday = () => (
+  const TodayScreen = () => (
     <div className="space-y-4">
       <section className="rounded-[32px] bg-black text-white p-6 shadow-2xl">
         <div className="flex items-start justify-between">
@@ -46,31 +79,93 @@ export default function App() {
           })}
         </div>
       </section>
+    </div>
+  );
 
-      <section className="rounded-3xl border border-emerald-100 bg-emerald-50 p-5">
-        <div className="flex items-center justify-between">
-          <p className="text-sm font-medium text-emerald-700">AI Confidence</p>
-          <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-emerald-700">92%</span>
+  const JourneyScreen = () => (
+    <div className="space-y-4">
+      <section className="rounded-[32px] bg-white p-5 shadow-xl">
+        <div className="flex items-center gap-4">
+          <div className="rounded-2xl bg-zinc-100 p-3"><User className="w-6 h-6" /></div>
+          <div>
+            <p className="font-semibold">Priya · Verified Caretaker</p>
+            <p className="text-sm text-zinc-500">Arriving in 14 mins</p>
+          </div>
+          <div className="ml-auto rounded-full bg-black text-white px-3 py-1 text-xs flex items-center gap-1"><Clock3 className="w-3 h-3" /> ETA</div>
         </div>
-        <p className="mt-3 text-sm leading-6 text-zinc-700">
-          Dad had a calm morning, completed his walk, and is socially engaged. No risk signals detected.
-        </p>
+      </section>
+      <section className="rounded-3xl bg-white p-5 shadow-lg">
+        <h2 className="text-xl font-semibold mb-4">Live Care Journey</h2>
+        <div className="space-y-3">
+          {checkpoints.map((item, idx) => (
+            <div key={item} className="flex items-center gap-3">
+              <CheckCircle2 className={`w-5 h-5 ${idx < 4 ? 'text-emerald-600' : 'text-zinc-300'}`} />
+              <p className="text-sm text-zinc-700">{item}</p>
+            </div>
+          ))}
+        </div>
       </section>
     </div>
   );
 
+  const FeedScreen = () => (
+    <div className="space-y-4">
+      <section className="rounded-3xl bg-white p-5 shadow-lg">
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-semibold">Family Trust Feed</h2>
+          <span className="text-xs text-zinc-400">Live</span>
+        </div>
+        <div className="mt-4 space-y-3">
+          {feedItems.map((item) => {
+            const Icon = item.icon;
+            return (
+              <div key={item.title} className="rounded-2xl bg-zinc-50 p-4">
+                <div className="flex items-start gap-3">
+                  <div className="rounded-xl bg-white p-2 shadow-sm"><Icon className="w-4 h-4" /></div>
+                  <div>
+                    <p className="text-sm font-semibold text-zinc-800">{item.title}</p>
+                    <p className="text-xs text-zinc-500 mt-1">{item.subtitle}</p>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
+      <section className="rounded-3xl bg-white p-5 shadow-lg">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="font-semibold">Caretaker voice note</p>
+            <p className="text-xs text-zinc-500">“She had breakfast and is smiling.”</p>
+          </div>
+          <button className="rounded-2xl bg-black text-white p-3"><Mic className="w-4 h-4" /></button>
+        </div>
+      </section>
+
+      <section className="rounded-3xl border border-amber-100 bg-amber-50 p-5">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="font-semibold text-zinc-800">Evening reassurance calls</p>
+            <p className="text-xs text-zinc-500 mt-1">Daily premium updates for NRI families</p>
+          </div>
+          <button className="rounded-2xl bg-white p-3 shadow-sm"><ChevronRight className="w-4 h-4" /></button>
+        </div>
+      </section>
+    </div>
+  );
+
+  const ControlScreen = () => (
+    <div className="rounded-3xl bg-white p-6 shadow-lg">Billing, concierge upgrades, emergency contacts, doctor preferences, and admin controls.</div>
+  );
+
   const renderContent = () => {
     switch (activeTab) {
-      case "today":
-        return renderToday();
-      case "care":
-        return <div className="rounded-3xl bg-white p-6 shadow-lg">Live care journey, ETA, check-in, and proof timeline.</div>;
-      case "updates":
-        return <div className="rounded-3xl bg-white p-6 shadow-lg">Daily reassurance feed, photos, and visit summaries.</div>;
-      case "control":
-        return <div className="rounded-3xl bg-white p-6 shadow-lg">Billing, doctors, emergency contacts, concierge, and preferences.</div>;
-      default:
-        return renderToday();
+      case "today": return <TodayScreen />;
+      case "care": return <JourneyScreen />;
+      case "updates": return <FeedScreen />;
+      case "control": return <ControlScreen />;
+      default: return <TodayScreen />;
     }
   };
 
@@ -85,22 +180,16 @@ export default function App() {
     <div className="min-h-screen bg-zinc-100 flex justify-center">
       <div className="w-full max-w-md min-h-screen p-4 pb-28">
         {renderContent()}
-
         <button className="fixed bottom-24 right-6 rounded-full bg-red-500 text-white p-4 shadow-2xl animate-pulse">
           <ShieldAlert className="w-6 h-6" />
         </button>
-
         <nav className="fixed bottom-0 left-0 right-0 p-4">
           <div className="max-w-md mx-auto grid grid-cols-4 rounded-3xl bg-white p-2 shadow-2xl">
             {tabs.map((tab) => {
               const Icon = tab.icon;
               const active = activeTab === tab.key;
               return (
-                <button
-                  key={tab.key}
-                  onClick={() => setActiveTab(tab.key)}
-                  className={`flex flex-col items-center gap-1 rounded-2xl py-2 ${active ? "bg-black text-white" : "text-zinc-500"}`}
-                >
+                <button key={tab.key} onClick={() => setActiveTab(tab.key)} className={`flex flex-col items-center gap-1 rounded-2xl py-2 ${active ? "bg-black text-white" : "text-zinc-500"}`}>
                   <Icon className="w-4 h-4" />
                   <span className="text-[11px] font-medium">{tab.label}</span>
                 </button>
