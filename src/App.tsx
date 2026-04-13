@@ -15,6 +15,7 @@ import {
   Mic,
   AlertTriangle,
   ChevronRight,
+  CalendarDays,
 } from "lucide-react";
 
 const careEvents = [
@@ -61,22 +62,51 @@ export default function App() {
 
       <section className="rounded-3xl bg-white p-5 shadow-lg">
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold">Care Story</h2>
-          <span className="text-xs text-zinc-400">Today</span>
+          <h2 className="text-xl font-semibold">Medicine Loop</h2>
+          <span className="text-xs text-emerald-600 font-semibold">7 day streak</span>
         </div>
         <div className="mt-4 space-y-3">
-          {careEvents.map((event) => {
-            const Icon = event.icon;
-            return (
-              <div key={event.text} className="flex items-center justify-between rounded-2xl bg-zinc-50 p-4">
-                <div className="flex items-center gap-3">
-                  <div className="rounded-xl bg-white p-2 shadow-sm"><Icon className="w-4 h-4" /></div>
-                  <p className="text-sm font-medium text-zinc-700">{event.text}</p>
-                </div>
-                <span className="text-xs text-zinc-400">{event.time}</span>
-              </div>
-            );
-          })}
+          <div className="rounded-2xl bg-zinc-50 p-4 flex items-center justify-between">
+            <div>
+              <p className="text-sm font-semibold">Next dose due</p>
+              <p className="text-xs text-zinc-500">Vitamin D · 8:00 PM</p>
+            </div>
+            <div className="rounded-full bg-amber-100 text-amber-700 px-3 py-1 text-xs">Due soon</div>
+          </div>
+
+          <div className="rounded-2xl bg-zinc-50 p-4 flex items-center justify-between">
+            <div>
+              <p className="text-sm font-semibold">Refill reminder</p>
+              <p className="text-xs text-zinc-500">Blood pressure meds · 2 days left</p>
+            </div>
+            <Pill className="w-4 h-4 text-zinc-500" />
+          </div>
+
+          <div className="rounded-2xl bg-red-50 border border-red-100 p-4 flex items-center justify-between">
+            <div>
+              <p className="text-sm font-semibold text-red-700">Missed dose alert</p>
+              <p className="text-xs text-zinc-500">Caregiver notified · escalation in 20 mins</p>
+            </div>
+            <AlertTriangle className="w-4 h-4 text-red-500" />
+          </div>
+        </div>
+      </section>
+
+      <section className="rounded-3xl bg-white p-5 shadow-lg">
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-semibold">Tomorrow Schedule</h2>
+          <CalendarDays className="w-5 h-5 text-zinc-400" />
+        </div>
+        <div className="mt-4 space-y-3">
+          <div className="rounded-2xl bg-zinc-50 p-4 text-sm text-zinc-700">
+            8:00 AM · Morning medicine + BP check
+          </div>
+          <div className="rounded-2xl bg-zinc-50 p-4 text-sm text-zinc-700">
+            11:00 AM · Caretaker revisit
+          </div>
+          <div className="rounded-2xl bg-zinc-50 p-4 text-sm text-zinc-700">
+            7:00 PM · Evening reassurance call
+          </div>
         </div>
       </section>
     </div>
@@ -91,7 +121,9 @@ export default function App() {
             <p className="font-semibold">Priya · Verified Caretaker</p>
             <p className="text-sm text-zinc-500">Arriving in 14 mins</p>
           </div>
-          <div className="ml-auto rounded-full bg-black text-white px-3 py-1 text-xs flex items-center gap-1"><Clock3 className="w-3 h-3" /> ETA</div>
+          <div className="ml-auto rounded-full bg-black text-white px-3 py-1 text-xs flex items-center gap-1">
+            <Clock3 className="w-3 h-3" /> ETA
+          </div>
         </div>
       </section>
       <section className="rounded-3xl bg-white p-5 shadow-lg">
@@ -99,7 +131,7 @@ export default function App() {
         <div className="space-y-3">
           {checkpoints.map((item, idx) => (
             <div key={item} className="flex items-center gap-3">
-              <CheckCircle2 className={`w-5 h-5 ${idx < 4 ? 'text-emerald-600' : 'text-zinc-300'}`} />
+              <CheckCircle2 className={`w-5 h-5 ${idx < 4 ? "text-emerald-600" : "text-zinc-300"}`} />
               <p className="text-sm text-zinc-700">{item}</p>
             </div>
           ))}
@@ -110,53 +142,27 @@ export default function App() {
 
   const FeedScreen = () => (
     <div className="space-y-4">
-      <section className="rounded-3xl bg-white p-5 shadow-lg">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold">Family Trust Feed</h2>
-          <span className="text-xs text-zinc-400">Live</span>
-        </div>
-        <div className="mt-4 space-y-3">
-          {feedItems.map((item) => {
-            const Icon = item.icon;
-            return (
-              <div key={item.title} className="rounded-2xl bg-zinc-50 p-4">
-                <div className="flex items-start gap-3">
-                  <div className="rounded-xl bg-white p-2 shadow-sm"><Icon className="w-4 h-4" /></div>
-                  <div>
-                    <p className="text-sm font-semibold text-zinc-800">{item.title}</p>
-                    <p className="text-xs text-zinc-500 mt-1">{item.subtitle}</p>
-                  </div>
-                </div>
+      {feedItems.map((item) => {
+        const Icon = item.icon;
+        return (
+          <div key={item.title} className="rounded-3xl bg-white p-5 shadow-lg">
+            <div className="flex items-start gap-3">
+              <div className="rounded-xl bg-zinc-100 p-2"><Icon className="w-4 h-4" /></div>
+              <div>
+                <p className="text-sm font-semibold">{item.title}</p>
+                <p className="text-xs text-zinc-500 mt-1">{item.subtitle}</p>
               </div>
-            );
-          })}
-        </div>
-      </section>
-
-      <section className="rounded-3xl bg-white p-5 shadow-lg">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="font-semibold">Caretaker voice note</p>
-            <p className="text-xs text-zinc-500">“She had breakfast and is smiling.”</p>
+            </div>
           </div>
-          <button className="rounded-2xl bg-black text-white p-3"><Mic className="w-4 h-4" /></button>
-        </div>
-      </section>
-
-      <section className="rounded-3xl border border-amber-100 bg-amber-50 p-5">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="font-semibold text-zinc-800">Evening reassurance calls</p>
-            <p className="text-xs text-zinc-500 mt-1">Daily premium updates for NRI families</p>
-          </div>
-          <button className="rounded-2xl bg-white p-3 shadow-sm"><ChevronRight className="w-4 h-4" /></button>
-        </div>
-      </section>
+        );
+      })}
     </div>
   );
 
   const ControlScreen = () => (
-    <div className="rounded-3xl bg-white p-6 shadow-lg">Billing, concierge upgrades, emergency contacts, doctor preferences, and admin controls.</div>
+    <div className="rounded-3xl bg-white p-6 shadow-lg">
+      Billing, concierge upgrades, emergency contacts, doctor preferences, and admin controls.
+    </div>
   );
 
   const renderContent = () => {
@@ -189,7 +195,13 @@ export default function App() {
               const Icon = tab.icon;
               const active = activeTab === tab.key;
               return (
-                <button key={tab.key} onClick={() => setActiveTab(tab.key)} className={`flex flex-col items-center gap-1 rounded-2xl py-2 ${active ? "bg-black text-white" : "text-zinc-500"}`}>
+                <button
+                  key={tab.key}
+                  onClick={() => setActiveTab(tab.key)}
+                  className={`flex flex-col items-center gap-1 rounded-2xl py-2 ${
+                    active ? "bg-black text-white" : "text-zinc-500"
+                  }`}
+                >
                   <Icon className="w-4 h-4" />
                   <span className="text-[11px] font-medium">{tab.label}</span>
                 </button>
