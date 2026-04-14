@@ -18,6 +18,8 @@ import {
   HelpingHand,
   UserRoundCheck,
   Phone,
+  Image as ImageIcon,
+  Sparkles,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -201,7 +203,7 @@ export default function App() {
     </div>
   );
 
-  const FamilyJourneyScreen = () => {
+  const CareCircleJourneyScreen = () => {
     const currentPos =
       realRoute.length > 0
         ? realRoute[routeIndex]
@@ -270,6 +272,56 @@ export default function App() {
           <HeartHandshake className="w-5 h-5 mb-2" />
           <p className="text-xs text-zinc-500">Companion</p>
           <p className="font-medium">Outing tomorrow</p>
+        </div>
+      </div>
+    </div>
+  );
+
+  const SeniorLoveWallScreen = () => (
+    <div className="space-y-4">
+      <div className={`${card} p-5`}>
+        <div className="flex items-center gap-3">
+          <Heart className="w-5 h-5" />
+          <div>
+            <p className="font-medium">Rahul sent love ❤️</p>
+            <p className="text-sm text-zinc-500">“Will visit this Sunday.”</p>
+          </div>
+        </div>
+      </div>
+
+      <div className={`${card} p-5`}>
+        <div className="flex items-center gap-3">
+          <Phone className="w-5 h-5" />
+          <div>
+            <p className="font-medium">Voice note waiting</p>
+            <p className="text-sm text-zinc-500">
+              Daughter shared a 30 sec message
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className={`${card} p-5`}>
+        <div className="flex items-center gap-3">
+          <ImageIcon className="w-5 h-5" />
+          <div>
+            <p className="font-medium">Memory photo</p>
+            <p className="text-sm text-zinc-500">
+              Grandchild school day picture
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className={`${card} p-5`}>
+        <div className="flex items-center gap-3">
+          <Sparkles className="w-5 h-5" />
+          <div>
+            <p className="font-medium">Comfort reflection</p>
+            <p className="text-sm text-zinc-500">
+              “Tomorrow is another beautiful day.”
+            </p>
+          </div>
         </div>
       </div>
     </div>
@@ -397,10 +449,14 @@ export default function App() {
         return role === "parent" ? (
           <SeniorJourneyScreen />
         ) : (
-          <FamilyJourneyScreen />
+          <CareCircleJourneyScreen />
         );
       case "family":
-        return <CareCircleScreen />;
+        return role === "parent" ? (
+          <SeniorLoveWallScreen />
+        ) : (
+          <CareCircleScreen />
+        );
       case "control":
         return <ControlScreen />;
       default:
