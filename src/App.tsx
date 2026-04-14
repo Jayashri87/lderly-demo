@@ -115,7 +115,7 @@ export default function App() {
       setRouteIndex((prev) =>
         prev < realRoute.length - 1 ? prev + 1 : prev
       );
-    }, 3000);
+    }, 2500);
 
     return () => clearInterval(timer);
   }, [realRoute]);
@@ -179,21 +179,51 @@ export default function App() {
   );
 
   const SeniorJourneyScreen = () => (
-    <div className={`${card} p-5`}>
-      <p className="font-medium">Support arriving soon</p>
+    <div className="space-y-4">
+      {[
+        ["Caretaker", "Arriving in 20 mins"],
+        ["Doctor", "Consult at 7 PM"],
+        ["Rahul", "Video call tonight"],
+        ["Companion", "Outing tomorrow"],
+      ].map(([title, sub]) => (
+        <div key={title} className={`${card} p-5`}>
+          <p className="font-medium">{title}</p>
+          <p className="text-sm text-zinc-500">{sub}</p>
+        </div>
+      ))}
     </div>
   );
 
-  const CareCircleJourneyScreen = () => (
-    <div className="relative h-[440px] rounded-[40px] overflow-hidden shadow-2xl">
-      <MapContainer center={[12.9716, 77.5946]} zoom={14} style={{ height: "100%" }}>
-        <TileLayer
-          attribution="&copy; OpenStreetMap contributors"
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
-      </MapContainer>
-    </div>
-  );
+  const CareCircleJourneyScreen = () => {
+    const currentPos =
+      realRoute.length > 0
+        ? realRoute[routeIndex]
+        : [12.9716, 77.5946];
+
+    const destination =
+      journey
+        ? [journey.lat + 0.004, journey.lng + 0.004]
+        : [12.9756, 77.5986];
+
+    return (
+      <div className="relative h-[440px] rounded-[40px] overflow-hidden shadow-2xl">
+        <MapContainer center={currentPos as any} zoom={14} style={{ height: "100%" }}>
+          <TileLayer
+            attribution="&copy; OpenStreetMap contributors"
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          />
+          <Marker position={currentPos as any}>
+            <Popup>{journey?.caretakerName || "Caretaker"}</Popup>
+          </Marker>
+          <Marker position={destination as any}>
+            <Popup>Senior Home</Popup>
+          </Marker>
+          <Polyline positions={realRoute} />
+          <Circle center={destination as any} radius={80} />
+        </MapContainer>
+      </div>
+    );
+  };
 
   const SeniorLoveWallScreen = () => (
     <div className="space-y-4">
@@ -215,6 +245,9 @@ export default function App() {
         <p className="font-medium">
           Crisis level: {crisisLevel.toUpperCase()}
         </p>
+      </div>
+      <div className="rounded-3xl bg-emerald-50 border border-emerald-100 p-4">
+        <p className="font-medium">Ambulance dispatch ready</p>
       </div>
     </div>
   );
@@ -243,6 +276,45 @@ export default function App() {
     <div className="space-y-4">
       <div className={`${card} p-5`}>
         <p className="font-medium">Doctor Consult</p>
+      </div>
+    </div>
+  );
+
+  const SOSModal = () => (
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-6">
+      <div className="bg-white rounded-[30px] p-6 w-full max-w-sm shadow-2xl">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Siren className="w-5 h-5 text-red-600" />
+            <p className="font-semibold">Emergency escalation</p>
+          </div>
+          <button onClick={() => setShowSOS(false)}>
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        <div className="grid grid-cols-3 gap-2 mt-4">
+          {["watch", "urgent", "critical"].map((level) => (
+            <button
+              key={level}
+              onClick={() => setCrisisLevel(level as any)}
+              className={`rounded-2xl py-2 text-sm ${
+                crisisLevel === level
+                  ? "bg-red-500 text-white"
+                  : "bg-zinc-100"
+              }`}
+            >
+              {level}
+            </button>
+          ))}
+        </div>
+
+        <button
+          onClick={() => setShowSOS(false)}
+          className="mt-4 w-full rounded-2xl bg-black text-white py-3"
+        >
+          Confirm Care Circle broadcast
+        </button>
       </div>
     </div>
   );
@@ -305,6 +377,8 @@ export default function App() {
         >
           <ShieldAlert className="w-6 h-6" />
         </button>
+
+        {showSOS && <SOSModal />}
 
         <div className="fixed bottom-0 left-0 right-0 p-4">
           <div className="max-w-md mx-auto grid grid-cols-4 gap-2 rounded-3xl bg-white/95 p-2 shadow-2xl">
