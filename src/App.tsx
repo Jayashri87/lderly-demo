@@ -1,20 +1,32 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Bell,
   Heart,
   Phone,
-  Sparkles,
   UserRound,
   ArrowRight,
   MapPinned,
   Users,
   ShieldCheck,
 } from "lucide-react";
+import { JourneyService, CareJourney } from "./services/journeyService";
 
 export default function App() {
   const [activeTab, setActiveTab] = useState("today");
   const [medicineConfirmed, setMedicineConfirmed] = useState(false);
+  const [journey, setJourney] = useState<CareJourney | null>(null);
+
+  useEffect(() => {
+    const unsubscribe = JourneyService.subscribe((data) => {
+      setJourney(data);
+      if (data?.status === "completed") {
+        setMedicineConfirmed(true);
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   const tabs = useMemo(
     () => [
@@ -42,8 +54,19 @@ export default function App() {
                 <div className="absolute bottom-10 right-12 h-4 w-4 rounded-full bg-[#EF4444]" />
                 <div className="absolute left-16 top-16 right-16 bottom-16 border-2 border-dashed border-white/70 rounded-[40px]" />
                 <div className="absolute bottom-4 left-4 rounded-2xl bg-white/90 px-3 py-2 text-sm text-[#1F2937] shadow">
-                  ETA 18 mins • live tracking
+                  ETA {journey?.eta ?? 18} mins • {journey?.summary ?? "Live tracking"}
                 </div>
+              </div>
+              <div className="mt-4">
+                <p className="font-semibold text-[#1F2937]">
+                  {journey?.status === "en_route"
+                    ? "Caretaker on the way"
+                    : journey?.status === "arrived"
+                    ? "Caretaker arrived"
+                    : journey?.status === "completed"
+                    ? "Visit completed"
+                    : "Visit scheduled"}
+                </p>
               </div>
             </div>
           </section>
@@ -58,14 +81,9 @@ export default function App() {
                 </div>
                 <div>
                   <p className="font-semibold text-[#1F2937]">Rahul checked in</p>
-                  <p className="text-sm text-[#6B7280]">Voice note + Sunday visit planned</p>
+                  <p className="text-sm text-[#6B7280]">{journey?.summary ?? "Voice note + Sunday visit planned"}</p>
                 </div>
               </div>
-            </div>
-            <div className="rounded-[28px] bg-white border border-[#EEE6DA] shadow-md p-5">
-              <p className="text-sm text-[#6B7280]">Family confidence</p>
-              <p className="text-3xl font-semibold text-[#1F2937] mt-1">98%</p>
-              <p className="text-sm text-[#6B7280] mt-2">Daily touchpoint completed</p>
             </div>
           </section>
         );
@@ -93,22 +111,12 @@ export default function App() {
                 <div>
                   <p className="text-sm text-[#6B7280]">What matters now</p>
                   <p className="text-xl font-semibold text-[#1F2937] mt-1">
-                    Caretaker arriving in 18 mins
+                    {journey?.status === "completed"
+                      ? "Visit completed successfully"
+                      : `Caretaker arriving in ${journey?.eta ?? 18} mins`}
                   </p>
                 </div>
                 <ShieldCheck className="w-6 h-6 text-[#2E7D6B]" />
-              </div>
-              <div className="mt-4 grid grid-cols-2 gap-3">
-                <div className="rounded-2xl bg-[#DDE9DD] p-3">
-                  <p className="text-xs text-[#6B7280]">Medicine</p>
-                  <p className="font-semibold text-[#1F2937]">
-                    {medicineConfirmed ? "Done" : "8 PM due"}
-                  </p>
-                </div>
-                <div className="rounded-2xl bg-[#DCEBFA] p-3">
-                  <p className="text-xs text-[#6B7280]">Customer care</p>
-                  <p className="font-semibold text-[#1F2937]">24×7 active</p>
-                </div>
               </div>
             </div>
           </section>
@@ -142,7 +150,7 @@ export default function App() {
               <div>
                 <p className="text-sm text-white/70">Live status</p>
                 <h1 className="text-2xl md:text-3xl xl:text-4xl font-semibold leading-tight mt-1">
-                  Mom is calm and safe
+                  {journey?.status === "completed" ? "Visit completed" : "Mom is calm and safe"}
                 </h1>
               </div>
               <div className="h-14 w-14 rounded-3xl bg-white/10 flex items-center justify-center shadow-inner">
@@ -150,7 +158,10 @@ export default function App() {
               </div>
             </div>
             <button
-              onClick={() => setMedicineConfirmed(true)}
+              onClick={async () => {
+                setMedicineConfirmed(true);
+                await JourneyService.updateStatus("completed");
+              }}
               className={`mt-4 w-full rounded-2xl py-3 flex items-center justify-center gap-2 font-semibold ${
                 medicineConfirmed ? "bg-[#DDE9DD] text-[#1F2937]" : "bg-white text-[#1F2937]"
               }`}
