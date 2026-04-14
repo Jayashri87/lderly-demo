@@ -14,6 +14,11 @@ import {
   MapPin,
   Heart,
   Eye,
+  Moon,
+  Droplets,
+  Footprints,
+  Pill,
+  Sparkles,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -97,6 +102,7 @@ export default function App() {
 
   const TodayScreen = () => (
     <div className="space-y-4">
+      {/* hero */}
       <section className="relative rounded-[40px] overflow-hidden shadow-2xl h-72">
         <img
           src="https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?q=80&w=1200"
@@ -107,10 +113,77 @@ export default function App() {
         <div className="absolute bottom-5 left-5 text-white">
           <p className="text-sm opacity-90">Seen {parentStatus?.lastSeen}</p>
           <h1 className="text-3xl font-semibold">
-            {parentStatus?.name || "Mom"} is safe 💚
+            {parentStatus?.name || "Mom"} is calm today 💚
           </h1>
+          <p className="text-sm opacity-80 mt-1">
+            Walk completed • hydrated • meds on time
+          </p>
         </div>
       </section>
+
+      {/* live pulse */}
+      <div className="grid grid-cols-2 gap-3">
+        {[
+          [Moon, "Sleep", "7h good"],
+          [Droplets, "Hydration", "Strong"],
+          [Footprints, "Movement", "1,248 steps"],
+          [Pill, "Medication", "On time"],
+        ].map(([Icon, label, value]: any) => (
+          <motion.div
+            key={label}
+            whileHover={{ y: -2 }}
+            className={`${card} p-4`}
+          >
+            <Icon className="w-5 h-5 mb-2" />
+            <p className="text-xs text-zinc-500">{label}</p>
+            <p className="font-medium">{value}</p>
+          </motion.div>
+        ))}
+      </div>
+
+      {/* AI summary */}
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        className={`${card} p-4`}
+      >
+        <div className="flex items-center gap-2 mb-2">
+          <Sparkles className="w-4 h-4 text-emerald-600" />
+          <p className="font-medium">AI reassurance summary</p>
+        </div>
+        <p className="text-sm text-zinc-600">
+          Mom seems emotionally calm today. Morning walk completed at 8:10 AM,
+          hydration is strong, and medicine was given after breakfast.
+        </p>
+      </motion.div>
+
+      {/* delight loop */}
+      <div className="rounded-3xl bg-emerald-50 border border-emerald-100 p-4">
+        <p className="text-sm font-medium">✨ Delight moment</p>
+        <p className="text-sm text-zinc-600 mt-1">
+          Mom smiled during the video call when Rahul shared family photos.
+        </p>
+      </div>
+
+      {/* family continuity */}
+      <div className={`${card} p-4 flex items-center justify-between`}>
+        <div>
+          <p className="text-sm font-medium">Family room is active</p>
+          <p className="text-xs text-zinc-500">
+            3 siblings viewed today’s care summary
+          </p>
+        </div>
+        <div className="flex gap-2 text-xs text-zinc-600">
+          <div className="flex items-center gap-1">
+            <Heart className="w-3 h-3 text-rose-500" />
+            2
+          </div>
+          <div className="flex items-center gap-1">
+            <Eye className="w-3 h-3" />
+            3
+          </div>
+        </div>
+      </div>
     </div>
   );
 
@@ -161,15 +234,12 @@ export default function App() {
               attribution="&copy; OpenStreetMap contributors"
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
-
             <Marker position={currentPos as any}>
               <Popup>{journey?.caretakerName || "Caretaker"}</Popup>
             </Marker>
-
             <Marker position={destination as any}>
               <Popup>Parent Home</Popup>
             </Marker>
-
             <Polyline positions={realRoute} />
             <Circle center={destination as any} radius={80} />
           </MapContainer>
@@ -235,17 +305,6 @@ export default function App() {
                     <CheckCircle2 className="w-4 h-4 text-emerald-600" />
                     Walk started ✓
                   </div>
-
-                  <div className="mt-3 flex gap-3 text-xs text-zinc-600">
-                    <div className="flex items-center gap-1">
-                      <Heart className="w-3 h-3 text-rose-500" />
-                      Ananya reacted ❤️
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Eye className="w-3 h-3" />
-                      Rahul saw update
-                    </div>
-                  </div>
                 </>
               ) : (
                 <div className="flex items-center gap-2">
@@ -255,13 +314,6 @@ export default function App() {
               )}
             </div>
           </motion.div>
-        </div>
-
-        <div className={`${card} p-4 flex items-center gap-3`}>
-          <ClipboardCheck className="w-5 h-5 text-sky-600" />
-          {proofDone
-            ? "Journey closed → reassurance timeline updated"
-            : "Care workflow: arrival → meds → hydration → walk → upload proof"}
         </div>
       </div>
     );
