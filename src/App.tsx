@@ -2,7 +2,6 @@ import * as React from "react";
 import {
   Home,
   MapPinned,
-  Bell,
   Settings,
   ShieldAlert,
   Users,
@@ -13,12 +12,9 @@ import {
   Droplets,
   Footprints,
   Pill,
-  Sparkles,
-  Mic,
-  TrendingUp,
-  CloudSun,
   MessageCircleHeart,
   CheckCircle2,
+  IndianRupee,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -45,12 +41,18 @@ type FamilyEvent = {
   reactions: number;
 };
 
+type ApprovalItem = {
+  id: number;
+  title: string;
+  approved: number;
+  total: number;
+  status: "pending" | "approved" | "hold";
+};
+
 export default function App() {
   const [activeTab, setActiveTab] = React.useState("today");
-  const [showSOS, setShowSOS] = React.useState(false);
   const [parentStatus, setParentStatus] = React.useState<any>(null);
   const [journey, setJourney] = React.useState<any>(null);
-  const [control, setControl] = React.useState<any>(null);
   const [feed, setFeed] = React.useState<any[]>([]);
   const [realRoute, setRealRoute] = React.useState<any[]>([]);
   const [realEta, setRealEta] = React.useState(3);
@@ -72,22 +74,23 @@ export default function App() {
       time: "11:20 AM",
       reactions: 2,
     },
-    {
-      id: 3,
-      actor: "Rahul (son)",
-      title: "Left a voice reassurance message",
-      time: "1:10 PM",
-      reactions: 4,
-    },
   ]);
 
-  const [approvals] = React.useState([
+  const [approvals, setApprovals] = React.useState<ApprovalItem[]>([
     {
       id: 1,
       title: "Approve Sunday companion outing",
-      status: "Pending 2 approvals",
+      approved: 1,
+      total: 3,
+      status: "pending",
     },
   ]);
+
+  const expenseSplit = [
+    { name: "Rahul", share: "₹800" },
+    { name: "Megha", share: "₹800" },
+    { name: "Anita", share: "₹800" },
+  ];
 
   React.useEffect(() => {
     async function loadData() {
@@ -98,7 +101,6 @@ export default function App() {
 
       setParentStatus(parent);
       setJourney(journeyData);
-      setControl(controlData);
       setFeed(feedData);
 
       const destination: [number, number] = [
@@ -154,9 +156,6 @@ export default function App() {
           <h1 className="text-3xl font-semibold">
             {parentStatus?.name || "Mom"} is calm today 💚
           </h1>
-          <p className="text-sm opacity-80 mt-1">
-            Walk completed • hydrated • meds on time
-          </p>
         </div>
       </section>
 
@@ -189,37 +188,22 @@ export default function App() {
       ? [journey.lat + 0.004, journey.lng + 0.004]
       : [12.9756, 77.5986];
 
-    const arrived =
-      realRoute.length > 0 && routeIndex >= realRoute.length - 2;
-
     return (
-      <div className="space-y-4">
-        <div className="rounded-full bg-black text-white px-4 py-2 text-xs inline-flex items-center gap-2">
-          <Users className="w-4 h-4" />
-          4 family members tracking live
-        </div>
-
-        <div className="relative h-[440px] rounded-[40px] overflow-hidden shadow-2xl">
-          <MapContainer center={currentPos as any} zoom={14} style={{ height: "100%" }}>
-            <TileLayer
-              attribution="&copy; OpenStreetMap contributors"
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            />
-            <Marker position={currentPos as any}>
-              <Popup>{journey?.caretakerName || "Caretaker"}</Popup>
-            </Marker>
-            <Marker position={destination as any}>
-              <Popup>Parent Home</Popup>
-            </Marker>
-            <Polyline positions={realRoute} />
-            <Circle center={destination as any} radius={80} />
-          </MapContainer>
-
-          <div className="absolute top-4 left-4 rounded-3xl bg-white/90 px-4 py-3 shadow-lg">
-            {journey?.caretakerName} •{" "}
-            {proofDone ? "Completed" : arrived ? "Arrived" : `${realEta} mins`}
-          </div>
-        </div>
+      <div className="relative h-[440px] rounded-[40px] overflow-hidden shadow-2xl">
+        <MapContainer center={currentPos as any} zoom={14} style={{ height: "100%" }}>
+          <TileLayer
+            attribution="&copy; OpenStreetMap contributors"
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          />
+          <Marker position={currentPos as any}>
+            <Popup>{journey?.caretakerName || "Caretaker"}</Popup>
+          </Marker>
+          <Marker position={destination as any}>
+            <Popup>Parent Home</Popup>
+          </Marker>
+          <Polyline positions={realRoute} />
+          <Circle center={destination as any} radius={80} />
+        </MapContainer>
       </div>
     );
   };
@@ -229,11 +213,8 @@ export default function App() {
       <div className="rounded-3xl bg-black text-white p-4">
         <div className="flex items-center gap-2">
           <Users className="w-5 h-5" />
-          <p className="font-medium">Family Room Live</p>
+          <p className="font-medium">Family Governance Room</p>
         </div>
-        <p className="text-sm text-white/80 mt-2">
-          Everyone stays emotionally synced on mom’s care.
-        </p>
       </div>
 
       {familyEvents.map((event) => (
@@ -245,7 +226,7 @@ export default function App() {
           <p className="text-sm text-zinc-600 mt-2">{event.title}</p>
           <div className="flex items-center gap-2 mt-3 text-pink-600">
             <MessageCircleHeart className="w-4 h-4" />
-            <span className="text-xs">{event.reactions} sibling reactions</span>
+            <span className="text-xs">{event.reactions} reactions</span>
           </div>
         </div>
       ))}
@@ -256,19 +237,66 @@ export default function App() {
             <CheckCircle2 className="w-4 h-4 text-amber-600" />
             <p className="font-medium">{item.title}</p>
           </div>
-          <p className="text-xs text-zinc-600 mt-2">{item.status}</p>
-        </div>
-      ))}
-    </div>
-  );
 
-  const FeedScreen = () => (
-    <div className="space-y-3">
-      {feed.map((item) => (
-        <div key={item.id} className="rounded-[30px] bg-white shadow-xl p-4">
-          {item.title}
+          <p className="text-xs text-zinc-600 mt-2">
+            {item.approved}/{item.total} approvals
+          </p>
+
+          <div className="grid grid-cols-2 gap-2 mt-3">
+            <button
+              onClick={() =>
+                setApprovals((prev) =>
+                  prev.map((a) =>
+                    a.id === item.id
+                      ? {
+                          ...a,
+                          approved: Math.min(a.total, a.approved + 1),
+                          status:
+                            a.approved + 1 >= a.total ? "approved" : "pending",
+                        }
+                      : a
+                  )
+                )
+              }
+              className="rounded-2xl bg-black text-white py-2 text-sm"
+            >
+              Approve
+            </button>
+
+            <button
+              onClick={() =>
+                setApprovals((prev) =>
+                  prev.map((a) =>
+                    a.id === item.id ? { ...a, status: "hold" } : a
+                  )
+                )
+              }
+              className="rounded-2xl bg-zinc-200 py-2 text-sm"
+            >
+              Hold
+            </button>
+          </div>
         </div>
       ))}
+
+      <div className={`${card} p-4`}>
+        <div className="flex items-center gap-2 mb-3">
+          <IndianRupee className="w-4 h-4" />
+          <p className="font-medium">Expense split</p>
+        </div>
+
+        <div className="space-y-2">
+          {expenseSplit.map((member) => (
+            <div
+              key={member.name}
+              className="flex justify-between text-sm text-zinc-600"
+            >
+              <span>{member.name}</span>
+              <span>{member.share}</span>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 
@@ -311,10 +339,7 @@ export default function App() {
           <motion.div key={activeTab}>{renderContent()}</motion.div>
         </AnimatePresence>
 
-        <button
-          onClick={() => setShowSOS(true)}
-          className="fixed bottom-24 right-6 rounded-full bg-red-500 text-white p-4 shadow-2xl animate-pulse"
-        >
+        <button className="fixed bottom-24 right-6 rounded-full bg-red-500 text-white p-4 shadow-2xl animate-pulse">
           <ShieldAlert className="w-6 h-6" />
         </button>
 
