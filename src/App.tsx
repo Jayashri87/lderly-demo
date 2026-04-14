@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Bell,
   Heart,
   Phone,
   UserRound,
@@ -10,22 +9,30 @@ import {
   Users,
   ShieldCheck,
 } from "lucide-react";
+import { User } from "firebase/auth";
 import { JourneyService, CareJourney } from "./services/journeyService";
+import { AuthService } from "./services/authService";
 
 export default function App() {
   const [activeTab, setActiveTab] = useState("today");
   const [medicineConfirmed, setMedicineConfirmed] = useState(false);
   const [journey, setJourney] = useState<CareJourney | null>(null);
+  const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
-    const unsubscribe = JourneyService.subscribe((data) => {
+    const unsubJourney = JourneyService.subscribe((data) => {
       setJourney(data);
       if (data?.status === "completed") {
         setMedicineConfirmed(true);
       }
     });
 
-    return () => unsubscribe();
+    const unsubAuth = AuthService.subscribe(setUser);
+
+    return () => {
+      unsubJourney();
+      unsubAuth();
+    };
   }, []);
 
   const tabs = useMemo(
@@ -80,8 +87,12 @@ export default function App() {
                   <Users className="w-5 h-5" />
                 </div>
                 <div>
-                  <p className="font-semibold text-[#1F2937]">Rahul checked in</p>
-                  <p className="text-sm text-[#6B7280]">{journey?.summary ?? "Voice note + Sunday visit planned"}</p>
+                  <p className="font-semibold text-[#1F2937]">
+                    {user?.displayName ?? "Family member"} checked in
+                  </p>
+                  <p className="text-sm text-[#6B7280]">
+                    {journey?.summary ?? "Voice note + Sunday visit planned"}
+                  </p>
                 </div>
               </div>
             </div>
@@ -140,9 +151,18 @@ export default function App() {
                 <p className="font-semibold text-[#1F2937]">Is mom okay right now?</p>
               </div>
             </div>
-            <button className="h-11 w-11 rounded-2xl bg-white/90 shadow-lg flex items-center justify-center border border-[#EEE6DA]">
-              <Bell className="w-5 h-5 text-[#1F2937]" />
-            </button>
+            {!user ? (
+              <button
+                onClick={() => AuthService.signInWithGoogle()}
+                className="rounded-2xl bg-white px-4 py-2 shadow border border-[#EEE6DA] text-sm font-medium text-[#1F2937]"
+              >
+                Sign in
+              </button>
+            ) : (
+              <div className="text-sm font-medium text-[#1F2937]">
+                {user.displayName}
+              </div>
+            )}
           </header>
 
           <section className="rounded-[32px] p-5 bg-gradient-to-br from-[#1F2937] to-[#374151] text-white shadow-2xl">
