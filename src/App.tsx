@@ -19,15 +19,13 @@ import {
   BellRing,
   Utensils,
   Mic,
+  CheckCircle2,
+  Stethoscope,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { auth, db } from "./firebase";
-import {
-  getParentStatus,
-  getJourneyData,
-} from "./services/firebase/liveData";
-import { getRoute } from "./services/maps/openRouteService";
+import { getParentStatus } from "./services/firebase/liveData";
 
 type Role = "parent" | "family" | null;
 
@@ -36,8 +34,10 @@ export default function App() {
   const [activeTab, setActiveTab] = React.useState("today");
   const [showSOS, setShowSOS] = React.useState(false);
   const [loadingRole, setLoadingRole] = React.useState(true);
-
   const [parentStatus, setParentStatus] = React.useState<any>(null);
+
+  const [selectedHelp, setSelectedHelp] = React.useState<string | null>(null);
+  const [requestSent, setRequestSent] = React.useState(false);
 
   React.useEffect(() => {
     async function bootstrapRole() {
@@ -51,9 +51,7 @@ export default function App() {
           return;
         }
 
-        const ref = doc(db, "users", user.uid);
-        const snap = await getDoc(ref);
-
+        const snap = await getDoc(doc(db, "users", user.uid));
         if (snap.exists() && snap.data()?.role) {
           const savedRole = snap.data().role as Role;
           setRole(savedRole);
@@ -65,14 +63,7 @@ export default function App() {
     }
 
     bootstrapRole();
-  }, []);
-
-  React.useEffect(() => {
-    async function loadData() {
-      const parent = await getParentStatus();
-      setParentStatus(parent);
-    }
-    loadData();
+    getParentStatus().then(setParentStatus);
   }, []);
 
   async function selectRole(newRole: Role) {
@@ -84,10 +75,7 @@ export default function App() {
 
     await setDoc(
       doc(db, "users", user.uid),
-      {
-        role: newRole,
-        updatedAt: new Date().toISOString(),
-      },
+      { role: newRole, updatedAt: new Date().toISOString() },
       { merge: true }
     );
   }
@@ -95,28 +83,26 @@ export default function App() {
   const card = "rounded-[30px] bg-white/95 backdrop-blur-xl shadow-xl";
 
   const SeniorTodayScreen = () => (
-    <div className="space-y-4">
-      <div className="grid grid-cols-2 gap-3">
-        <div className={`${card} p-4`}>
-          <Pill className="w-5 h-5 mb-2" />
-          <p className="text-xs text-zinc-500">Medicine</p>
-          <p className="font-medium">BP tablet after dinner</p>
-        </div>
-        <div className={`${card} p-4`}>
-          <Heart className="w-5 h-5 mb-2" />
-          <p className="text-xs text-zinc-500">Care Circle</p>
-          <p className="font-medium">Rahul will call at 8 PM</p>
-        </div>
-        <div className={`${card} p-4`}>
-          <Clock3 className="w-5 h-5 mb-2" />
-          <p className="text-xs text-zinc-500">Who is coming</p>
-          <p className="font-medium">Caretaker in 20 mins</p>
-        </div>
-        <div className={`${card} p-4`}>
-          <HelpingHand className="w-5 h-5 mb-2" />
-          <p className="text-xs text-zinc-500">Need help</p>
-          <p className="font-medium">Tap Control anytime</p>
-        </div>
+    <div className="grid grid-cols-2 gap-3">
+      <div className={`${card} p-4`}>
+        <Pill className="w-5 h-5 mb-2" />
+        <p className="text-xs text-zinc-500">Medicine</p>
+        <p className="font-medium">BP tablet after dinner</p>
+      </div>
+      <div className={`${card} p-4`}>
+        <Heart className="w-5 h-5 mb-2" />
+        <p className="text-xs text-zinc-500">Care Circle</p>
+        <p className="font-medium">Rahul will call at 8 PM</p>
+      </div>
+      <div className={`${card} p-4`}>
+        <Clock3 className="w-5 h-5 mb-2" />
+        <p className="text-xs text-zinc-500">Who is coming</p>
+        <p className="font-medium">Caretaker in 20 mins</p>
+      </div>
+      <div className={`${card} p-4`}>
+        <HelpingHand className="w-5 h-5 mb-2" />
+        <p className="text-xs text-zinc-500">Need help</p>
+        <p className="font-medium">Tap Control anytime</p>
       </div>
     </div>
   );
@@ -138,49 +124,22 @@ export default function App() {
 
   const SeniorLoveWallScreen = () => (
     <div className="space-y-4">
-      <div className={`${card} p-5`}>
-        <div className="flex items-center gap-3">
-          <Mic className="w-5 h-5" />
-          <div>
-            <p className="font-medium">Voice note from Rahul</p>
-            <p className="text-sm text-zinc-500">“See you Sunday ❤️”</p>
+      {[
+        [Mic, "Voice note from Rahul", "See you Sunday ❤️"],
+        [ImageIcon, "Grandchild memory", "School photo added today"],
+        [Sparkles, "Comfort reflection", "Tomorrow is another beautiful day"],
+        [Heart, "Gratitude", "One thing that made you smile today"],
+      ].map(([Icon, title, subtitle]: any) => (
+        <div key={title} className={`${card} p-5`}>
+          <div className="flex items-center gap-3">
+            <Icon className="w-5 h-5" />
+            <div>
+              <p className="font-medium">{title}</p>
+              <p className="text-sm text-zinc-500">{subtitle}</p>
+            </div>
           </div>
         </div>
-      </div>
-
-      <div className={`${card} p-5`}>
-        <div className="flex items-center gap-3">
-          <ImageIcon className="w-5 h-5" />
-          <div>
-            <p className="font-medium">Grandchild memory</p>
-            <p className="text-sm text-zinc-500">School photo added today</p>
-          </div>
-        </div>
-      </div>
-
-      <div className={`${card} p-5`}>
-        <div className="flex items-center gap-3">
-          <Sparkles className="w-5 h-5" />
-          <div>
-            <p className="font-medium">Comfort reflection</p>
-            <p className="text-sm text-zinc-500">
-              Tomorrow is another beautiful day
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <div className={`${card} p-5`}>
-        <div className="flex items-center gap-3">
-          <Heart className="w-5 h-5" />
-          <div>
-            <p className="font-medium">Gratitude</p>
-            <p className="text-sm text-zinc-500">
-              One thing that made you smile today
-            </p>
-          </div>
-        </div>
-      </div>
+      ))}
     </div>
   );
 
@@ -188,6 +147,74 @@ export default function App() {
     <div className={`${card} p-5`}>
       <p className="font-medium">Crisis continuity active</p>
       <p className="text-sm text-zinc-500">Ambulance + escalation ready</p>
+    </div>
+  );
+
+  const SeniorControlScreen = () => {
+    const helpOptions = [
+      "Doctor help",
+      "Medicine refill",
+      "Food & hydration",
+      "Feeling low",
+    ];
+
+    if (requestSent) {
+      return (
+        <div className="space-y-4">
+          <div className={`${card} p-5`}>
+            <div className="flex items-center gap-3">
+              <CheckCircle2 className="w-6 h-6" />
+              <div>
+                <p className="font-medium">{selectedHelp} request sent</p>
+                <p className="text-sm text-zinc-500">
+                  Dr. Ananya will call in 10 mins. Rahul also notified ❤️
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <button
+            onClick={() => {
+              setRequestSent(false);
+              setSelectedHelp(null);
+            }}
+            className="w-full rounded-3xl bg-black text-white py-4"
+          >
+            Send another request
+          </button>
+        </div>
+      );
+    }
+
+    return (
+      <div className="space-y-4">
+        {helpOptions.map((option) => (
+          <button
+            key={option}
+            onClick={() => {
+              setSelectedHelp(option);
+              setRequestSent(true);
+            }}
+            className={`${card} p-5 w-full text-left`}
+          >
+            <div className="flex items-center gap-3">
+              <Stethoscope className="w-5 h-5" />
+              <div>
+                <p className="font-medium">{option}</p>
+                <p className="text-sm text-zinc-500">
+                  Tap to notify Care Circle
+                </p>
+              </div>
+            </div>
+          </button>
+        ))}
+      </div>
+    );
+  };
+
+  const CareCircleControlScreen = () => (
+    <div className={`${card} p-5`}>
+      <p className="font-medium">Doctor + lab + companion ops ready</p>
     </div>
   );
 
@@ -230,7 +257,7 @@ export default function App() {
       case "family":
         return role === "parent" ? <SeniorLoveWallScreen /> : <CareCircleScreen />;
       case "control":
-        return <StablePlaceholder label="Control stable" />;
+        return role === "parent" ? <SeniorControlScreen /> : <CareCircleControlScreen />;
       default:
         return role === "parent" ? <SeniorTodayScreen /> : <CareCircleTodayScreen />;
     }
@@ -262,7 +289,11 @@ export default function App() {
             ].map(([key, Icon, label]: any) => (
               <button
                 key={key}
-                onClick={() => setActiveTab(key)}
+                onClick={() => {
+                  setActiveTab(key);
+                  setRequestSent(false);
+                  setSelectedHelp(null);
+                }}
                 className={`rounded-2xl py-2 flex flex-col items-center gap-1 ${
                   activeTab === key ? "bg-black text-white" : "text-zinc-500"
                 }`}
