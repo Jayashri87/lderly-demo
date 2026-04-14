@@ -5,30 +5,22 @@ import {
   Settings,
   ShieldAlert,
   Users,
-  Stethoscope,
-  FlaskConical,
-  HeartHandshake,
-  Pill,
   Siren,
-  Ambulance,
   X,
   Heart,
   Clock3,
   HelpingHand,
-  BellRing,
-  Utensils,
+  Pill,
   TrendingUp,
   Eye,
+  Phone,
+  Image as ImageIcon,
+  Sparkles,
+  BellRing,
+  Utensils,
+  Mic,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  MapContainer,
-  TileLayer,
-  Marker,
-  Popup,
-  Polyline,
-  Circle,
-} from "react-leaflet";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { auth, db } from "./firebase";
 import {
@@ -43,14 +35,9 @@ export default function App() {
   const [role, setRole] = React.useState<Role>(null);
   const [activeTab, setActiveTab] = React.useState("today");
   const [showSOS, setShowSOS] = React.useState(false);
-  const [crisisLevel, setCrisisLevel] =
-    React.useState<"watch" | "urgent" | "critical">("watch");
+  const [loadingRole, setLoadingRole] = React.useState(true);
 
   const [parentStatus, setParentStatus] = React.useState<any>(null);
-  const [journey, setJourney] = React.useState<any>(null);
-  const [realRoute, setRealRoute] = React.useState<any[]>([]);
-  const [routeIndex, setRouteIndex] = React.useState(0);
-  const [loadingRole, setLoadingRole] = React.useState(true);
 
   React.useEffect(() => {
     async function bootstrapRole() {
@@ -83,37 +70,10 @@ export default function App() {
   React.useEffect(() => {
     async function loadData() {
       const parent = await getParentStatus();
-      const journeyData = await getJourneyData();
-
       setParentStatus(parent);
-      setJourney(journeyData);
-
-      const destination: [number, number] = [
-        journeyData.lat + 0.004,
-        journeyData.lng + 0.004,
-      ];
-
-      const routeData = await getRoute(
-        [journeyData.lat, journeyData.lng],
-        destination
-      );
-
-      setRealRoute(routeData.coordinates);
     }
-
     loadData();
   }, []);
-
-  React.useEffect(() => {
-    if (!realRoute.length) return;
-    const timer = setInterval(() => {
-      setRouteIndex((prev) =>
-        prev < realRoute.length - 1 ? prev + 1 : prev
-      );
-    }, 2500);
-
-    return () => clearInterval(timer);
-  }, [realRoute]);
 
   async function selectRole(newRole: Role) {
     setRole(newRole);
@@ -122,9 +82,8 @@ export default function App() {
     const user = auth.currentUser;
     if (!user) return;
 
-    const ref = doc(db, "users", user.uid);
     await setDoc(
-      ref,
+      doc(db, "users", user.uid),
       {
         role: newRole,
         updatedAt: new Date().toISOString(),
@@ -137,40 +96,22 @@ export default function App() {
 
   const SeniorTodayScreen = () => (
     <div className="space-y-4">
-      <section className="relative rounded-[40px] overflow-hidden shadow-2xl h-72">
-        <img
-          src="https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?q=80&w=1200"
-          className="absolute inset-0 h-full w-full object-cover"
-          alt="Senior"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
-        <div className="absolute bottom-5 left-5 text-white">
-          <p className="text-sm opacity-90">Good evening</p>
-          <h1 className="text-3xl font-semibold">
-            Your day is calm and supported ❤️
-          </h1>
-        </div>
-      </section>
-
       <div className="grid grid-cols-2 gap-3">
         <div className={`${card} p-4`}>
           <Pill className="w-5 h-5 mb-2" />
           <p className="text-xs text-zinc-500">Medicine</p>
           <p className="font-medium">BP tablet after dinner</p>
         </div>
-
         <div className={`${card} p-4`}>
           <Heart className="w-5 h-5 mb-2" />
           <p className="text-xs text-zinc-500">Care Circle</p>
           <p className="font-medium">Rahul will call at 8 PM</p>
         </div>
-
         <div className={`${card} p-4`}>
           <Clock3 className="w-5 h-5 mb-2" />
           <p className="text-xs text-zinc-500">Who is coming</p>
           <p className="font-medium">Caretaker in 20 mins</p>
         </div>
-
         <div className={`${card} p-4`}>
           <HelpingHand className="w-5 h-5 mb-2" />
           <p className="text-xs text-zinc-500">Need help</p>
@@ -181,59 +122,78 @@ export default function App() {
   );
 
   const CareCircleTodayScreen = () => (
+    <div className="grid grid-cols-2 gap-3">
+      <div className={`${card} p-4`}>
+        <Eye className="w-5 h-5 mb-2" />
+        <p className="text-xs text-zinc-500">Seen</p>
+        <p className="font-medium">{parentStatus?.lastSeen || "2 mins ago"}</p>
+      </div>
+      <div className={`${card} p-4`}>
+        <TrendingUp className="w-5 h-5 mb-2" />
+        <p className="text-xs text-zinc-500">Tomorrow</p>
+        <p className="font-medium">Low risk predicted</p>
+      </div>
+    </div>
+  );
+
+  const SeniorLoveWallScreen = () => (
     <div className="space-y-4">
-      <section className="relative rounded-[40px] overflow-hidden shadow-2xl h-72">
-        <img
-          src="https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?q=80&w=1200"
-          className="absolute inset-0 h-full w-full object-cover"
-          alt="Senior"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
-        <div className="absolute bottom-5 left-5 text-white">
-          <p className="text-sm opacity-90">
-            Seen {parentStatus?.lastSeen || "2 mins ago"}
-          </p>
-          <h1 className="text-3xl font-semibold">
-            {parentStatus?.name || "Senior"} is stable tonight 🧡
-          </h1>
+      <div className={`${card} p-5`}>
+        <div className="flex items-center gap-3">
+          <Mic className="w-5 h-5" />
+          <div>
+            <p className="font-medium">Voice note from Rahul</p>
+            <p className="text-sm text-zinc-500">“See you Sunday ❤️”</p>
+          </div>
         </div>
-      </section>
+      </div>
 
-      <div className="grid grid-cols-2 gap-3">
-        <div className={`${card} p-4`}>
-          <Eye className="w-5 h-5 mb-2" />
-          <p className="text-xs text-zinc-500">Adherence</p>
-          <p className="font-medium">Medicine taken</p>
+      <div className={`${card} p-5`}>
+        <div className="flex items-center gap-3">
+          <ImageIcon className="w-5 h-5" />
+          <div>
+            <p className="font-medium">Grandchild memory</p>
+            <p className="text-sm text-zinc-500">School photo added today</p>
+          </div>
         </div>
+      </div>
 
-        <div className={`${card} p-4`}>
-          <Clock3 className="w-5 h-5 mb-2" />
-          <p className="text-xs text-zinc-500">Next visit</p>
-          <p className="font-medium">Caretaker ETA 20m</p>
+      <div className={`${card} p-5`}>
+        <div className="flex items-center gap-3">
+          <Sparkles className="w-5 h-5" />
+          <div>
+            <p className="font-medium">Comfort reflection</p>
+            <p className="text-sm text-zinc-500">
+              Tomorrow is another beautiful day
+            </p>
+          </div>
         </div>
+      </div>
 
-        <div className={`${card} p-4`}>
-          <TrendingUp className="w-5 h-5 mb-2" />
-          <p className="text-xs text-zinc-500">Tomorrow</p>
-          <p className="font-medium">Low risk predicted</p>
-        </div>
-
-        <div className={`${card} p-4`}>
-          <Heart className="w-5 h-5 mb-2" />
-          <p className="text-xs text-zinc-500">Confidence</p>
-          <p className="font-medium">Routine on track</p>
+      <div className={`${card} p-5`}>
+        <div className="flex items-center gap-3">
+          <Heart className="w-5 h-5" />
+          <div>
+            <p className="font-medium">Gratitude</p>
+            <p className="text-sm text-zinc-500">
+              One thing that made you smile today
+            </p>
+          </div>
         </div>
       </div>
     </div>
   );
 
-  // KEEP ALL OTHER EXISTING SCREENS SAME FROM STABLE BASELINE
-  const SeniorJourneyScreen = () => <div className={`${card} p-5`}>Journey stable</div>;
-  const CareCircleJourneyScreen = () => <div className={`${card} p-5`}>Route stable</div>;
-  const SeniorLoveWallScreen = () => <div className={`${card} p-5`}>Love wall stable</div>;
-  const CareCircleScreen = () => <div className={`${card} p-5`}>Crisis stable</div>;
-  const SeniorControlScreen = () => <div className={`${card} p-5`}>Help ring stable</div>;
-  const CareCircleControlScreen = () => <div className={`${card} p-5`}>Ops stable</div>;
+  const CareCircleScreen = () => (
+    <div className={`${card} p-5`}>
+      <p className="font-medium">Crisis continuity active</p>
+      <p className="text-sm text-zinc-500">Ambulance + escalation ready</p>
+    </div>
+  );
+
+  const StablePlaceholder = ({ label }: { label: string }) => (
+    <div className={`${card} p-5`}>{label}</div>
+  );
 
   const SOSModal = () => (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-6">
@@ -247,18 +207,12 @@ export default function App() {
             <X className="w-5 h-5" />
           </button>
         </div>
-        <button
-          onClick={() => setShowSOS(false)}
-          className="mt-4 w-full rounded-2xl bg-black text-white py-3"
-        >
-          Confirm Care Circle broadcast
-        </button>
       </div>
     </div>
   );
 
   const RoleSelector = () => (
-    <div className="min-h-screen flex items-center justify-center">
+    <div className="min-h-screen flex items-center justify-center gap-4">
       <button onClick={() => selectRole("parent")}>Senior</button>
       <button onClick={() => selectRole("family")}>Care Circle</button>
     </div>
@@ -272,11 +226,11 @@ export default function App() {
       case "today":
         return role === "parent" ? <SeniorTodayScreen /> : <CareCircleTodayScreen />;
       case "care":
-        return role === "parent" ? <SeniorJourneyScreen /> : <CareCircleJourneyScreen />;
+        return <StablePlaceholder label="Journey stable" />;
       case "family":
         return role === "parent" ? <SeniorLoveWallScreen /> : <CareCircleScreen />;
       case "control":
-        return role === "parent" ? <SeniorControlScreen /> : <CareCircleControlScreen />;
+        return <StablePlaceholder label="Control stable" />;
       default:
         return role === "parent" ? <SeniorTodayScreen /> : <CareCircleTodayScreen />;
     }
