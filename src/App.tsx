@@ -22,6 +22,8 @@ import {
   MapPin,
   ClipboardList,
   AlertTriangle,
+  Repeat,
+  Ambulance,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { doc, getDoc, setDoc } from "firebase/firestore";
@@ -39,6 +41,8 @@ export default function App() {
 
   const [selectedHelp, setSelectedHelp] = React.useState<string | null>(null);
   const [requestSent, setRequestSent] = React.useState(false);
+
+  const [sosEscalated, setSosEscalated] = React.useState(false);
 
   React.useEffect(() => {
     async function bootstrapRole() {
@@ -79,6 +83,14 @@ export default function App() {
       { role: newRole, updatedAt: new Date().toISOString() },
       { merge: true }
     );
+  }
+
+  function switchRole() {
+    const nextRole = role === "parent" ? "family" : "parent";
+    selectRole(nextRole);
+    setActiveTab("today");
+    setRequestSent(false);
+    setSelectedHelp(null);
   }
 
   const card = "rounded-[30px] bg-white/95 backdrop-blur-xl shadow-xl";
@@ -126,27 +138,11 @@ export default function App() {
   const SeniorJourneyScreen = () => (
     <div className="space-y-4">
       <div className={`${card} p-5`}>
-        <div className="flex items-center gap-3">
-          <MapPin className="w-5 h-5" />
-          <div>
-            <p className="font-medium">Caretaker arrived</p>
-            <p className="text-sm text-zinc-500">Reached home at 6:20 PM</p>
-          </div>
-        </div>
+        <p className="font-medium">Caretaker arrived 6:20 PM</p>
       </div>
-
       <div className={`${card} p-5`}>
-        <div className="flex items-center gap-3">
-          <CheckCircle2 className="w-5 h-5" />
-          <div>
-            <p className="font-medium">Medicine completed</p>
-            <p className="text-sm text-zinc-500">
-              BP tablet and dinner support done ❤️
-            </p>
-          </div>
-        </div>
+        <p className="font-medium">Medicine completed ❤️</p>
       </div>
-
       <div className={`${card} p-5`}>
         <p className="font-medium">Next visit tomorrow at 9 AM</p>
       </div>
@@ -156,35 +152,10 @@ export default function App() {
   const CareCircleJourneyScreen = () => (
     <div className="space-y-4">
       <div className={`${card} p-5`}>
-        <div className="flex items-center gap-3">
-          <MapPin className="w-5 h-5" />
-          <div>
-            <p className="font-medium">Arrived 6:20 PM</p>
-            <p className="text-sm text-zinc-500">Visit duration 38 mins</p>
-          </div>
-        </div>
+        <p className="font-medium">Visit duration 38 mins</p>
       </div>
-
       <div className={`${card} p-5`}>
-        <div className="flex items-center gap-3">
-          <ClipboardList className="w-5 h-5" />
-          <div>
-            <p className="font-medium">Visit summary</p>
-            <p className="text-sm text-zinc-500">
-              Medicine given, hydration normal, mood stable
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <div className={`${card} p-5`}>
-        <div className="flex items-center gap-3">
-          <AlertTriangle className="w-5 h-5" />
-          <div>
-            <p className="font-medium">Escalation</p>
-            <p className="text-sm text-zinc-500">No escalation required</p>
-          </div>
-        </div>
+        <p className="font-medium">Summary: hydration normal</p>
       </div>
     </div>
   );
@@ -195,7 +166,6 @@ export default function App() {
         [Mic, "Voice note from Rahul", "See you Sunday ❤️"],
         [ImageIcon, "Grandchild memory", "School photo added today"],
         [Sparkles, "Comfort reflection", "Tomorrow is another beautiful day"],
-        [Heart, "Gratitude", "One thing that made you smile today"],
       ].map(([Icon, title, subtitle]: any) => (
         <div key={title} className={`${card} p-5`}>
           <div className="flex items-center gap-3">
@@ -213,7 +183,6 @@ export default function App() {
   const CareCircleScreen = () => (
     <div className={`${card} p-5`}>
       <p className="font-medium">Crisis continuity active</p>
-      <p className="text-sm text-zinc-500">Ambulance + escalation ready</p>
     </div>
   );
 
@@ -229,16 +198,12 @@ export default function App() {
       return (
         <div className="space-y-4">
           <div className={`${card} p-5`}>
-            <div className="flex items-center gap-3">
-              <CheckCircle2 className="w-6 h-6" />
-              <div>
-                <p className="font-medium">{selectedHelp} request sent</p>
-                <p className="text-sm text-zinc-500">
-                  Callback in 10 mins. Rahul notified ❤️
-                </p>
-              </div>
-            </div>
+            <p className="font-medium">{selectedHelp} request sent</p>
+            <p className="text-sm text-zinc-500">
+              Callback in 10 mins. Rahul notified ❤️
+            </p>
           </div>
+
           <button
             onClick={() => {
               setRequestSent(false);
@@ -247,6 +212,13 @@ export default function App() {
             className="w-full rounded-3xl bg-black text-white py-4"
           >
             Send another request
+          </button>
+
+          <button
+            onClick={switchRole}
+            className="w-full rounded-3xl bg-zinc-100 py-4"
+          >
+            🔁 Switch to Care Circle
           </button>
         </div>
       );
@@ -274,13 +246,29 @@ export default function App() {
             </div>
           </button>
         ))}
+
+        <button
+          onClick={switchRole}
+          className="w-full rounded-3xl bg-zinc-100 py-4"
+        >
+          🔁 Switch to Care Circle
+        </button>
       </div>
     );
   };
 
   const CareCircleControlScreen = () => (
-    <div className={`${card} p-5`}>
-      <p className="font-medium">Doctor + lab + companion ops ready</p>
+    <div className="space-y-4">
+      <div className={`${card} p-5`}>
+        <p className="font-medium">Doctor + lab + companion ops ready</p>
+      </div>
+
+      <button
+        onClick={switchRole}
+        className="w-full rounded-3xl bg-zinc-100 py-4"
+      >
+        🔁 Switch to Senior
+      </button>
     </div>
   );
 
@@ -296,6 +284,16 @@ export default function App() {
             <X className="w-5 h-5" />
           </button>
         </div>
+
+        <button
+          onClick={() => {
+            setSosEscalated(true);
+            setShowSOS(false);
+          }}
+          className="mt-4 w-full rounded-2xl bg-red-500 text-white py-3"
+        >
+          Confirm ambulance escalation
+        </button>
       </div>
     </div>
   );
@@ -328,6 +326,20 @@ export default function App() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#faf7f2] to-[#f3eee7] flex justify-center p-4">
       <div className="w-full max-w-md pb-28">
+        {sosEscalated && (
+          <div className="mb-4 rounded-3xl bg-red-50 border border-red-100 p-4">
+            <div className="flex items-center gap-3">
+              <Ambulance className="w-5 h-5 text-red-600" />
+              <div>
+                <p className="font-medium">Ambulance escalation active</p>
+                <p className="text-sm text-zinc-500">
+                  ETA 8 mins • Rahul notified • tracking started
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
         <AnimatePresence mode="wait">
           <motion.div key={`${role}-${activeTab}`}>{renderContent()}</motion.div>
         </AnimatePresence>
