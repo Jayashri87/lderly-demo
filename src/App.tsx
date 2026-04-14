@@ -12,6 +12,8 @@ import {
   FlaskConical,
   HeartHandshake,
   MapPin,
+  Heart,
+  Eye,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -40,6 +42,7 @@ export default function App() {
   const [realRoute, setRealRoute] = React.useState<any[]>([]);
   const [realEta, setRealEta] = React.useState(3);
   const [routeIndex, setRouteIndex] = React.useState(0);
+  const [proofDone, setProofDone] = React.useState(false);
 
   React.useEffect(() => {
     async function loadData() {
@@ -70,7 +73,6 @@ export default function App() {
     loadData();
   }, []);
 
-  // 🚗 moving caretaker simulation on real route
   React.useEffect(() => {
     if (!realRoute.length) return;
 
@@ -83,6 +85,7 @@ export default function App() {
           return next;
         }
 
+        setProofDone(true);
         return prev;
       });
     }, 3000);
@@ -140,7 +143,9 @@ export default function App() {
                 <div key={step} className="flex flex-col items-center flex-1">
                   <div
                     className={`w-3 h-3 rounded-full ${
-                      i <= (arrived ? 2 : 1) ? "bg-black" : "bg-zinc-300"
+                      i <= (proofDone ? 5 : arrived ? 2 : 1)
+                        ? "bg-black"
+                        : "bg-zinc-300"
                     }`}
                   />
                   <span className="mt-2">{step}</span>
@@ -176,7 +181,12 @@ export default function App() {
             className="absolute top-4 left-4 rounded-3xl bg-white/90 backdrop-blur-xl px-4 py-3 shadow-lg"
           >
             {journey?.caretakerName} •{" "}
-            {arrived ? "Arrived" : `${realEta} mins`} • High confidence
+            {proofDone
+              ? "Completed"
+              : arrived
+              ? "Arrived"
+              : `${realEta} mins`}{" "}
+            • High confidence
           </motion.div>
 
           <div className="absolute top-20 left-4 rounded-2xl bg-white/90 px-4 py-2 shadow-lg text-xs flex items-center gap-2">
@@ -190,7 +200,9 @@ export default function App() {
             className="absolute bottom-0 left-0 right-0 rounded-t-[36px] bg-white/95 backdrop-blur-xl p-4 shadow-2xl"
           >
             <p className="font-medium">
-              {arrived
+              {proofDone
+                ? "Care completed successfully"
+                : arrived
                 ? "Caretaker arrived • Uploading proof"
                 : "Live route to parent home"}
             </p>
@@ -199,25 +211,57 @@ export default function App() {
               <motion.div
                 className="h-full rounded-full bg-gradient-to-r from-black to-zinc-400"
                 animate={{
-                  width: arrived
+                  width: proofDone
                     ? "100%"
+                    : arrived
+                    ? "85%"
                     : `${(routeIndex / realRoute.length) * 100}%`,
                 }}
               />
             </div>
 
-            <div className="mt-4 rounded-2xl bg-zinc-50 p-3 flex items-center gap-2 text-sm">
-              <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-              {arrived
-                ? "Medicine started ✓ Hydration next"
-                : "Arrival proof ready → medicine photo + hydration log"}
+            <div className="mt-4 rounded-2xl bg-zinc-50 p-3 text-sm space-y-2">
+              {proofDone ? (
+                <>
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                    Medicine completed ✓
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                    Hydration completed ✓
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                    Walk started ✓
+                  </div>
+
+                  <div className="mt-3 flex gap-3 text-xs text-zinc-600">
+                    <div className="flex items-center gap-1">
+                      <Heart className="w-3 h-3 text-rose-500" />
+                      Ananya reacted ❤️
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Eye className="w-3 h-3" />
+                      Rahul saw update
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                  Arrival proof ready → medicine photo + hydration log
+                </div>
+              )}
             </div>
           </motion.div>
         </div>
 
         <div className={`${card} p-4 flex items-center gap-3`}>
           <ClipboardCheck className="w-5 h-5 text-sky-600" />
-          Care workflow: arrival → meds → hydration → walk → upload proof
+          {proofDone
+            ? "Journey closed → reassurance timeline updated"
+            : "Care workflow: arrival → meds → hydration → walk → upload proof"}
         </div>
       </div>
     );
