@@ -6,14 +6,9 @@ import {
   Settings,
   ShieldAlert,
   Users,
-  ClipboardCheck,
-  CheckCircle2,
   Stethoscope,
   FlaskConical,
   HeartHandshake,
-  MapPin,
-  Heart,
-  Eye,
   Moon,
   Droplets,
   Footprints,
@@ -22,6 +17,8 @@ import {
   Mic,
   TrendingUp,
   CloudSun,
+  MessageCircleHeart,
+  CheckCircle2,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -40,6 +37,14 @@ import {
 } from "./services/firebase/liveData";
 import { getRoute } from "./services/maps/openRouteService";
 
+type FamilyEvent = {
+  id: number;
+  actor: string;
+  title: string;
+  time: string;
+  reactions: number;
+};
+
 export default function App() {
   const [activeTab, setActiveTab] = React.useState("today");
   const [showSOS, setShowSOS] = React.useState(false);
@@ -51,6 +56,38 @@ export default function App() {
   const [realEta, setRealEta] = React.useState(3);
   const [routeIndex, setRouteIndex] = React.useState(0);
   const [proofDone, setProofDone] = React.useState(false);
+
+  const [familyEvents] = React.useState<FamilyEvent[]>([
+    {
+      id: 1,
+      actor: "Caretaker",
+      title: "Mom completed breakfast and morning medication",
+      time: "8:45 AM",
+      reactions: 3,
+    },
+    {
+      id: 2,
+      actor: "Doctor",
+      title: "BP stable after consultation",
+      time: "11:20 AM",
+      reactions: 2,
+    },
+    {
+      id: 3,
+      actor: "Rahul (son)",
+      title: "Left a voice reassurance message",
+      time: "1:10 PM",
+      reactions: 4,
+    },
+  ]);
+
+  const [approvals] = React.useState([
+    {
+      id: 1,
+      title: "Approve Sunday companion outing",
+      status: "Pending 2 approvals",
+    },
+  ]);
 
   React.useEffect(() => {
     async function loadData() {
@@ -137,48 +174,6 @@ export default function App() {
           </div>
         ))}
       </div>
-
-      <div className={`${card} p-4`}>
-        <div className="flex items-center gap-2 mb-2">
-          <Sparkles className="w-4 h-4 text-emerald-600" />
-          <p className="font-medium">AI reassurance summary</p>
-        </div>
-        <p className="text-sm text-zinc-600">
-          Mom seems emotionally calm today. Morning walk completed at 8:10 AM,
-          hydration is strong, and medicine was given after breakfast.
-        </p>
-      </div>
-
-      <div className="rounded-3xl bg-indigo-50 border border-indigo-100 p-4">
-        <div className="flex items-center gap-2 mb-2">
-          <CloudSun className="w-4 h-4 text-indigo-600" />
-          <p className="font-medium">Tomorrow confidence</p>
-        </div>
-        <p className="text-sm text-zinc-600">
-          Medicine stock is sufficient, weather supports morning walk, and care
-          schedule looks stable for tomorrow.
-        </p>
-      </div>
-
-      <div className={`${card} p-4`}>
-        <div className="flex items-center gap-2 mb-2">
-          <Mic className="w-4 h-4 text-emerald-600" />
-          <p className="font-medium">Voice note from caretaker</p>
-        </div>
-        <p className="text-sm text-zinc-600 italic">
-          “Aunty had breakfast well, smiled after tea, and enjoyed the balcony sunlight.”
-        </p>
-      </div>
-
-      <div className="rounded-3xl bg-amber-50 border border-amber-100 p-4">
-        <div className="flex items-center gap-2 mb-2">
-          <TrendingUp className="w-4 h-4 text-amber-600" />
-          <p className="font-medium">Early trend signal</p>
-        </div>
-        <p className="text-sm text-zinc-600">
-          Hydration trend is slightly lower than yesterday. Suggest coconut water tomorrow.
-        </p>
-      </div>
     </div>
   );
 
@@ -202,25 +197,6 @@ export default function App() {
         <div className="rounded-full bg-black text-white px-4 py-2 text-xs inline-flex items-center gap-2">
           <Users className="w-4 h-4" />
           4 family members tracking live
-        </div>
-
-        <div className={`${card} p-4`}>
-          <div className="flex items-center justify-between text-[10px] text-zinc-500">
-            {["Accepted", "En route", "Arrived", "Task", "Proof", "Done"].map(
-              (step, i) => (
-                <div key={step} className="flex flex-col items-center flex-1">
-                  <div
-                    className={`w-3 h-3 rounded-full ${
-                      i <= (proofDone ? 5 : arrived ? 2 : 1)
-                        ? "bg-black"
-                        : "bg-zinc-300"
-                    }`}
-                  />
-                  <span className="mt-2">{step}</span>
-                </div>
-              )
-            )}
-          </div>
         </div>
 
         <div className="relative h-[440px] rounded-[40px] overflow-hidden shadow-2xl">
@@ -247,6 +223,44 @@ export default function App() {
       </div>
     );
   };
+
+  const FamilyScreen = () => (
+    <div className="space-y-4">
+      <div className="rounded-3xl bg-black text-white p-4">
+        <div className="flex items-center gap-2">
+          <Users className="w-5 h-5" />
+          <p className="font-medium">Family Room Live</p>
+        </div>
+        <p className="text-sm text-white/80 mt-2">
+          Everyone stays emotionally synced on mom’s care.
+        </p>
+      </div>
+
+      {familyEvents.map((event) => (
+        <div key={event.id} className={`${card} p-4`}>
+          <div className="flex justify-between">
+            <p className="font-medium">{event.actor}</p>
+            <p className="text-xs text-zinc-500">{event.time}</p>
+          </div>
+          <p className="text-sm text-zinc-600 mt-2">{event.title}</p>
+          <div className="flex items-center gap-2 mt-3 text-pink-600">
+            <MessageCircleHeart className="w-4 h-4" />
+            <span className="text-xs">{event.reactions} sibling reactions</span>
+          </div>
+        </div>
+      ))}
+
+      {approvals.map((item) => (
+        <div key={item.id} className="rounded-3xl bg-amber-50 border border-amber-100 p-4">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 text-amber-600" />
+            <p className="font-medium">{item.title}</p>
+          </div>
+          <p className="text-xs text-zinc-600 mt-2">{item.status}</p>
+        </div>
+      ))}
+    </div>
+  );
 
   const FeedScreen = () => (
     <div className="space-y-3">
@@ -281,8 +295,8 @@ export default function App() {
         return <TodayScreen />;
       case "care":
         return <JourneyScreen />;
-      case "updates":
-        return <FeedScreen />;
+      case "family":
+        return <FamilyScreen />;
       case "control":
         return <ControlScreen />;
       default:
@@ -309,7 +323,7 @@ export default function App() {
             {[
               ["today", Home, "Today"],
               ["care", MapPinned, "Journey"],
-              ["updates", Bell, "Feed"],
+              ["family", Users, "Family"],
               ["control", Settings, "Control"],
             ].map(([key, Icon, label]: any) => (
               <button
