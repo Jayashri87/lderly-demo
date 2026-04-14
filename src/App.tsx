@@ -14,13 +14,21 @@ import {
   MapPin,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { MapContainer, TileLayer, Marker, Popup, Polyline, Circle } from "react-leaflet";
+import {
+  MapContainer,
+  TileLayer,
+  Marker,
+  Popup,
+  Polyline,
+  Circle,
+} from "react-leaflet";
 import {
   getParentStatus,
   getJourneyData,
   getControlData,
   getFeedData,
 } from "./services/firebase/liveData";
+import { getRoute } from "./services/maps/openRouteService";
 
 export default function App() {
   const [activeTab, setActiveTab] = React.useState("today");
@@ -29,7 +37,8 @@ export default function App() {
   const [journey, setJourney] = React.useState<any>(null);
   const [control, setControl] = React.useState<any>(null);
   const [feed, setFeed] = React.useState<any[]>([]);
-  const [eta] = React.useState(3);
+  const [realRoute, setRealRoute] = React.useState<any[]>([]);
+  const [realEta, setRealEta] = React.useState(3);
 
   React.useEffect(() => {
     async function loadData() {
@@ -42,7 +51,21 @@ export default function App() {
       setJourney(journeyData);
       setControl(controlData);
       setFeed(feedData);
+
+      const destination: [number, number] = [
+        journeyData.lat + 0.004,
+        journeyData.lng + 0.004,
+      ];
+
+      const routeData = await getRoute(
+        [journeyData.lat, journeyData.lng],
+        destination
+      );
+
+      setRealRoute(routeData.coordinates);
+      setRealEta(routeData.etaMin || 3);
     }
+
     loadData();
   }, []);
 
@@ -76,17 +99,13 @@ export default function App() {
       ? [journey.lat + 0.004, journey.lng + 0.004]
       : [12.9756, 77.5986];
 
-    const route = [currentPos, destination];
-
     return (
       <div className="space-y-4">
-        {/* WATCHERS */}
         <div className="rounded-full bg-black text-white px-4 py-2 text-xs inline-flex items-center gap-2">
           <Users className="w-4 h-4" />
           4 family members tracking live
         </div>
 
-        {/* STATUS */}
         <div className={`${card} p-4`}>
           <div className="flex items-center justify-between text-[10px] text-zinc-500">
             {["Accepted", "En route", "Arrived", "Task", "Proof", "Done"].map(
@@ -104,7 +123,6 @@ export default function App() {
           </div>
         </div>
 
-        {/* MAP */}
         <div className="relative h-[440px] rounded-[40px] overflow-hidden shadow-2xl">
           <MapContainer center={currentPos as any} zoom={14} style={{ height: "100%" }}>
             <TileLayer
@@ -112,39 +130,32 @@ export default function App() {
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
 
-            {/* caretaker */}
             <Marker position={currentPos as any}>
               <Popup>{journey?.caretakerName || "Caretaker"}</Popup>
             </Marker>
 
-            {/* destination */}
             <Marker position={destination as any}>
               <Popup>Parent Home</Popup>
             </Marker>
 
-            {/* route line */}
-            <Polyline positions={route as any} />
+            <Polyline positions={realRoute.length ? realRoute : [currentPos, destination]} />
 
-            {/* arrival zone */}
             <Circle center={destination as any} radius={80} />
           </MapContainer>
 
-          {/* ETA */}
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             className="absolute top-4 left-4 rounded-3xl bg-white/90 backdrop-blur-xl px-4 py-3 shadow-lg"
           >
-            {journey?.caretakerName} • {eta} mins • High confidence
+            {journey?.caretakerName} • {realEta} mins • High confidence
           </motion.div>
 
-          {/* DESTINATION CONFIRM */}
           <div className="absolute top-20 left-4 rounded-2xl bg-white/90 px-4 py-2 shadow-lg text-xs flex items-center gap-2">
             <MapPin className="w-3 h-3" />
             Destination locked • Parent Home
           </div>
 
-          {/* BOTTOM */}
           <motion.div
             initial={{ y: 120 }}
             animate={{ y: 0 }}
@@ -155,7 +166,7 @@ export default function App() {
             <div className="mt-2 h-2 rounded-full bg-zinc-200 overflow-hidden">
               <motion.div
                 className="h-full rounded-full bg-gradient-to-r from-black to-zinc-400"
-                animate={{ width: `${100 - eta * 15}%` }}
+                animate={{ width: `${100 - realEta * 5}%` }}
               />
             </div>
 
@@ -166,7 +177,6 @@ export default function App() {
           </motion.div>
         </div>
 
-        {/* CHECKLIST */}
         <div className={`${card} p-4 flex items-center gap-3`}>
           <ClipboardCheck className="w-5 h-5 text-sky-600" />
           Care workflow: arrival → meds → hydration → walk → upload proof
