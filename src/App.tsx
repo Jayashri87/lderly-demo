@@ -15,6 +15,8 @@ import {
   MessageCircleHeart,
   CheckCircle2,
   IndianRupee,
+  FileText,
+  ClipboardPlus,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -28,7 +30,6 @@ import {
 import {
   getParentStatus,
   getJourneyData,
-  getControlData,
   getFeedData,
 } from "./services/firebase/liveData";
 import { getRoute } from "./services/maps/openRouteService";
@@ -49,11 +50,18 @@ type ApprovalItem = {
   status: "pending" | "approved" | "hold";
 };
 
+type DoctorNote = {
+  id: number;
+  doctor: string;
+  note: string;
+  prescription: string;
+  followUp: string;
+};
+
 export default function App() {
   const [activeTab, setActiveTab] = React.useState("today");
   const [parentStatus, setParentStatus] = React.useState<any>(null);
   const [journey, setJourney] = React.useState<any>(null);
-  const [feed, setFeed] = React.useState<any[]>([]);
   const [realRoute, setRealRoute] = React.useState<any[]>([]);
   const [realEta, setRealEta] = React.useState(3);
   const [routeIndex, setRouteIndex] = React.useState(0);
@@ -63,7 +71,7 @@ export default function App() {
     {
       id: 1,
       actor: "Caretaker",
-      title: "Mom completed breakfast and morning medication",
+      title: "Mom completed breakfast and medication",
       time: "8:45 AM",
       reactions: 3,
     },
@@ -86,6 +94,16 @@ export default function App() {
     },
   ]);
 
+  const doctorNotes: DoctorNote[] = [
+    {
+      id: 1,
+      doctor: "Dr. Mehta",
+      note: "BP stable. Continue hydration and evening walk.",
+      prescription: "Amlodipine 5mg after dinner",
+      followUp: "Next review in 7 days",
+    },
+  ];
+
   const expenseSplit = [
     { name: "Rahul", share: "₹800" },
     { name: "Megha", share: "₹800" },
@@ -96,12 +114,10 @@ export default function App() {
     async function loadData() {
       const parent = await getParentStatus();
       const journeyData = await getJourneyData();
-      const controlData = await getControlData();
       const feedData = await getFeedData();
 
       setParentStatus(parent);
       setJourney(journeyData);
-      setFeed(feedData);
 
       const destination: [number, number] = [
         journeyData.lat + 0.004,
@@ -213,7 +229,7 @@ export default function App() {
       <div className="rounded-3xl bg-black text-white p-4">
         <div className="flex items-center gap-2">
           <Users className="w-5 h-5" />
-          <p className="font-medium">Family Governance Room</p>
+          <p className="font-medium">Medical Continuity Room</p>
         </div>
       </div>
 
@@ -237,45 +253,9 @@ export default function App() {
             <CheckCircle2 className="w-4 h-4 text-amber-600" />
             <p className="font-medium">{item.title}</p>
           </div>
-
           <p className="text-xs text-zinc-600 mt-2">
             {item.approved}/{item.total} approvals
           </p>
-
-          <div className="grid grid-cols-2 gap-2 mt-3">
-            <button
-              onClick={() =>
-                setApprovals((prev) =>
-                  prev.map((a) =>
-                    a.id === item.id
-                      ? {
-                          ...a,
-                          approved: Math.min(a.total, a.approved + 1),
-                          status:
-                            a.approved + 1 >= a.total ? "approved" : "pending",
-                        }
-                      : a
-                  )
-                )
-              }
-              className="rounded-2xl bg-black text-white py-2 text-sm"
-            >
-              Approve
-            </button>
-
-            <button
-              onClick={() =>
-                setApprovals((prev) =>
-                  prev.map((a) =>
-                    a.id === item.id ? { ...a, status: "hold" } : a
-                  )
-                )
-              }
-              className="rounded-2xl bg-zinc-200 py-2 text-sm"
-            >
-              Hold
-            </button>
-          </div>
         </div>
       ))}
 
@@ -284,19 +264,35 @@ export default function App() {
           <IndianRupee className="w-4 h-4" />
           <p className="font-medium">Expense split</p>
         </div>
-
-        <div className="space-y-2">
-          {expenseSplit.map((member) => (
-            <div
-              key={member.name}
-              className="flex justify-between text-sm text-zinc-600"
-            >
-              <span>{member.name}</span>
-              <span>{member.share}</span>
-            </div>
-          ))}
-        </div>
+        {expenseSplit.map((member) => (
+          <div
+            key={member.name}
+            className="flex justify-between text-sm text-zinc-600"
+          >
+            <span>{member.name}</span>
+            <span>{member.share}</span>
+          </div>
+        ))}
       </div>
+
+      {doctorNotes.map((note) => (
+        <div key={note.id} className="rounded-3xl bg-blue-50 border border-blue-100 p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <FileText className="w-4 h-4 text-blue-600" />
+            <p className="font-medium">{note.doctor}</p>
+          </div>
+          <p className="text-sm text-zinc-700">{note.note}</p>
+
+          <div className="mt-3 rounded-2xl bg-white p-3">
+            <div className="flex items-center gap-2 mb-1">
+              <ClipboardPlus className="w-4 h-4 text-emerald-600" />
+              <p className="text-sm font-medium">Prescription</p>
+            </div>
+            <p className="text-sm text-zinc-600">{note.prescription}</p>
+            <p className="text-xs text-zinc-500 mt-2">{note.followUp}</p>
+          </div>
+        </div>
+      ))}
     </div>
   );
 
