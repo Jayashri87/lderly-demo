@@ -137,13 +137,13 @@ export default function App() {
 
   const card = "rounded-[30px] bg-white/95 backdrop-blur-xl shadow-xl";
 
-  const ParentTodayScreen = () => (
+  const SeniorTodayScreen = () => (
     <div className="space-y-4">
       <section className="relative rounded-[40px] overflow-hidden shadow-2xl h-72">
         <img
           src="https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?q=80&w=1200"
           className="absolute inset-0 h-full w-full object-cover"
-          alt="Parent"
+          alt="Senior"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
         <div className="absolute bottom-5 left-5 text-white">
@@ -163,7 +163,7 @@ export default function App() {
 
         <div className={`${card} p-4`}>
           <Heart className="w-5 h-5 mb-2" />
-          <p className="text-xs text-zinc-500">Family love</p>
+          <p className="text-xs text-zinc-500">Care Circle love</p>
           <p className="font-medium">Rahul will call at 8 PM</p>
         </div>
 
@@ -176,25 +176,25 @@ export default function App() {
         <div className={`${card} p-4`}>
           <HelpingHand className="w-5 h-5 mb-2" />
           <p className="text-xs text-zinc-500">Need help</p>
-          <p className="font-medium">Call family / SOS</p>
+          <p className="font-medium">Call Care Circle / SOS</p>
         </div>
       </div>
     </div>
   );
 
-  const FamilyTodayScreen = () => (
+  const CareCircleTodayScreen = () => (
     <div className="space-y-4">
       <section className="relative rounded-[40px] overflow-hidden shadow-2xl h-72">
         <img
           src="https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?q=80&w=1200"
           className="absolute inset-0 h-full w-full object-cover"
-          alt="Parent"
+          alt="Senior"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
         <div className="absolute bottom-5 left-5 text-white">
           <p className="text-sm opacity-90">Seen {parentStatus?.lastSeen}</p>
           <h1 className="text-3xl font-semibold">
-            {parentStatus?.name || "Mom"} needs attention tonight 🧡
+            {parentStatus?.name || "Senior"} needs attention tonight 🧡
           </h1>
         </div>
       </section>
@@ -224,7 +224,7 @@ export default function App() {
             <Popup>{journey?.caretakerName || "Caretaker"}</Popup>
           </Marker>
           <Marker position={destination as any}>
-            <Popup>Parent Home</Popup>
+            <Popup>Senior Home</Popup>
           </Marker>
           <Polyline positions={realRoute} />
           <Circle center={destination as any} radius={80} />
@@ -233,7 +233,7 @@ export default function App() {
     );
   };
 
-  const ParentJourneyScreen = () => (
+  const SeniorJourneyScreen = () => (
     <div className="space-y-4">
       <div className="relative h-[300px] rounded-[40px] overflow-hidden shadow-2xl">
         <MapContainer center={[12.9716, 77.5946]} zoom={14} style={{ height: "100%" }}>
@@ -242,7 +242,7 @@ export default function App() {
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
           <Marker position={[12.9716, 77.5946]}>
-            <Popup>Home support arriving</Popup>
+            <Popup>Support arriving</Popup>
           </Marker>
         </MapContainer>
       </div>
@@ -275,7 +275,7 @@ export default function App() {
     </div>
   );
 
-  const FamilyScreen = () => (
+  const CareCircleScreen = () => (
     <div className="space-y-4">
       <div className="rounded-3xl bg-red-50 border border-red-100 p-4">
         <div className="flex items-center gap-2">
@@ -345,7 +345,7 @@ export default function App() {
           onClick={() => setShowSOS(false)}
           className="mt-4 w-full rounded-2xl bg-black text-white py-3"
         >
-          Confirm family broadcast
+          Confirm Care Circle broadcast
         </button>
       </div>
     </div>
@@ -361,13 +361,13 @@ export default function App() {
               onClick={() => selectRole("parent")}
               className="w-full rounded-3xl bg-black text-white py-4"
             >
-              👨‍🦳 Parent
+              👴 Senior
             </button>
             <button
               onClick={() => selectRole("family")}
               className="w-full rounded-3xl bg-zinc-100 py-4"
             >
-              👨‍👩‍👧 Family
+              🤝 Care Circle
             </button>
           </div>
         </div>
@@ -389,25 +389,25 @@ export default function App() {
     switch (activeTab) {
       case "today":
         return role === "parent" ? (
-          <ParentTodayScreen />
+          <SeniorTodayScreen />
         ) : (
-          <FamilyTodayScreen />
+          <CareCircleTodayScreen />
         );
       case "care":
         return role === "parent" ? (
-          <ParentJourneyScreen />
+          <SeniorJourneyScreen />
         ) : (
           <FamilyJourneyScreen />
         );
       case "family":
-        return <FamilyScreen />;
+        return <CareCircleScreen />;
       case "control":
         return <ControlScreen />;
       default:
         return role === "parent" ? (
-          <ParentTodayScreen />
+          <SeniorTodayScreen />
         ) : (
-          <FamilyTodayScreen />
+          <CareCircleTodayScreen />
         );
     }
   };
@@ -435,7 +435,7 @@ export default function App() {
             {[
               ["today", Home, "Today"],
               ["care", MapPinned, "Journey"],
-              ["family", Users, "Family"],
+              ["family", Users, "Circle"],
               ["control", Settings, "Control"],
             ].map(([key, Icon, label]: any) => (
               <button
