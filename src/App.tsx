@@ -20,6 +20,10 @@ export default function App() {
   const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
+    AuthService.handleRedirectResult().catch((error) => {
+      console.error("Redirect sign-in failed:", error);
+    });
+
     const unsubJourney = JourneyService.subscribe((data) => {
       setJourney(data);
       if (data?.status === "completed") {
@@ -53,7 +57,9 @@ export default function App() {
             <div className="rounded-[28px] bg-white border border-[#EEE6DA] shadow-lg p-4">
               <div className="flex items-center gap-2 mb-3">
                 <MapPinned className="w-5 h-5 text-[#2E7D6B]" />
-                <p className="font-semibold text-[#1F2937]">Live caretaker route</p>
+                <p className="font-semibold text-[#1F2937]">
+                  Live caretaker route
+                </p>
               </div>
               <div className="h-64 rounded-[24px] bg-gradient-to-br from-[#DCEBFA] to-[#D8F1EC] relative overflow-hidden">
                 <div className="absolute inset-6 border-4 border-white/60 rounded-[20px]" />
@@ -61,7 +67,8 @@ export default function App() {
                 <div className="absolute bottom-10 right-12 h-4 w-4 rounded-full bg-[#EF4444]" />
                 <div className="absolute left-16 top-16 right-16 bottom-16 border-2 border-dashed border-white/70 rounded-[40px]" />
                 <div className="absolute bottom-4 left-4 rounded-2xl bg-white/90 px-3 py-2 text-sm text-[#1F2937] shadow">
-                  ETA {journey?.eta ?? 18} mins • {journey?.summary ?? "Live tracking"}
+                  ETA {journey?.eta ?? 18} mins •{" "}
+                  {journey?.summary ?? "Live tracking"}
                 </div>
               </div>
               <div className="mt-4">
@@ -78,6 +85,7 @@ export default function App() {
             </div>
           </section>
         );
+
       case "circle":
         return (
           <section className="mt-6 space-y-4">
@@ -91,13 +99,15 @@ export default function App() {
                     {user?.displayName ?? "Family member"} checked in
                   </p>
                   <p className="text-sm text-[#6B7280]">
-                    {journey?.summary ?? "Voice note + Sunday visit planned"}
+                    {journey?.summary ??
+                      "Voice note + Sunday visit planned"}
                   </p>
                 </div>
               </div>
             </div>
           </section>
         );
+
       case "control":
         return (
           <section className="mt-6 grid md:grid-cols-2 gap-4">
@@ -107,20 +117,26 @@ export default function App() {
               ["Meal support", "45 mins"],
               ["Mood companion", "instant"],
             ].map(([title, sla]) => (
-              <button key={title} className="rounded-[24px] bg-white border border-[#EEE6DA] shadow-md p-5 text-left">
+              <button
+                key={title}
+                className="rounded-[24px] bg-white border border-[#EEE6DA] shadow-md p-5 text-left"
+              >
                 <p className="font-semibold text-[#1F2937]">{title}</p>
                 <p className="text-sm text-[#6B7280] mt-1">SLA {sla}</p>
               </button>
             ))}
           </section>
         );
+
       default:
         return (
           <section className="mt-6">
             <div className="rounded-[28px] bg-white border border-[#EEE6DA] shadow-md p-5">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-[#6B7280]">What matters now</p>
+                  <p className="text-sm text-[#6B7280]">
+                    What matters now
+                  </p>
                   <p className="text-xl font-semibold text-[#1F2937] mt-1">
                     {journey?.status === "completed"
                       ? "Visit completed successfully"
@@ -148,9 +164,12 @@ export default function App() {
               </div>
               <div>
                 <p className="text-xs text-[#6B7280]">LDERLY • Live Care OS</p>
-                <p className="font-semibold text-[#1F2937]">Is mom okay right now?</p>
+                <p className="font-semibold text-[#1F2937]">
+                  Is mom okay right now?
+                </p>
               </div>
             </div>
+
             {!user ? (
               <button
                 onClick={() => AuthService.signInWithGoogle()}
@@ -170,23 +189,30 @@ export default function App() {
               <div>
                 <p className="text-sm text-white/70">Live status</p>
                 <h1 className="text-2xl md:text-3xl xl:text-4xl font-semibold leading-tight mt-1">
-                  {journey?.status === "completed" ? "Visit completed" : "Mom is calm and safe"}
+                  {journey?.status === "completed"
+                    ? "Visit completed"
+                    : "Mom is calm and safe"}
                 </h1>
               </div>
               <div className="h-14 w-14 rounded-3xl bg-white/10 flex items-center justify-center shadow-inner">
                 <Heart className="w-6 h-6" />
               </div>
             </div>
+
             <button
               onClick={async () => {
                 setMedicineConfirmed(true);
                 await JourneyService.updateStatus("completed");
               }}
               className={`mt-4 w-full rounded-2xl py-3 flex items-center justify-center gap-2 font-semibold ${
-                medicineConfirmed ? "bg-[#DDE9DD] text-[#1F2937]" : "bg-white text-[#1F2937]"
+                medicineConfirmed
+                  ? "bg-[#DDE9DD] text-[#1F2937]"
+                  : "bg-white text-[#1F2937]"
               }`}
             >
-              {medicineConfirmed ? "Medicine confirmed ✅" : "Confirm 8 PM medicine"}
+              {medicineConfirmed
+                ? "Medicine confirmed ✅"
+                : "Confirm 8 PM medicine"}
               {!medicineConfirmed && <ArrowRight className="w-4 h-4" />}
             </button>
           </section>
