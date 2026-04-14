@@ -13,20 +13,26 @@ import {
   Pill,
   TrendingUp,
   Eye,
-  Phone,
   Image as ImageIcon,
   Sparkles,
   Mic,
   CheckCircle2,
   Stethoscope,
-  MapPin,
-  ClipboardList,
-  AlertTriangle,
-  Repeat,
   Ambulance,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { doc, getDoc, setDoc } from "firebase/firestore";
+import {
+  doc,
+  getDoc,
+  setDoc,
+  addDoc,
+  collection,
+  query,
+  where,
+  getDocs,
+  orderBy,
+  limit,
+} from "firebase/firestore";
 import { auth, db } from "./firebase";
 import { getParentStatus } from "./services/firebase/liveData";
 
@@ -41,34 +47,49 @@ export default function App() {
 
   const [selectedHelp, setSelectedHelp] = React.useState<string | null>(null);
   const [requestSent, setRequestSent] = React.useState(false);
+  const [persistedRequest, setPersistedRequest] = React.useState<any>(null);
 
   const [sosEscalated, setSosEscalated] = React.useState(false);
 
   React.useEffect(() => {
-    async function bootstrapRole() {
+    async function bootstrap() {
       try {
         const cachedRole = localStorage.getItem("lderly-role");
         if (cachedRole) setRole(cachedRole as Role);
 
         const user = auth.currentUser;
-        if (!user) {
-          setLoadingRole(false);
-          return;
+        if (user) {
+          const snap = await getDoc(doc(db, "users", user.uid));
+          if (snap.exists() && snap.data()?.role) {
+            const savedRole = snap.data().role as Role;
+            setRole(savedRole);
+            localStorage.setItem("lderly-role", savedRole);
+
+            const q = query(
+              collection(db, "help_requests"),
+              where("userId", "==", user.uid),
+              orderBy("createdAt", "desc"),
+              limit(1)
+            );
+
+            const reqSnap = await getDocs(q);
+            if (!reqSnap.empty) {
+              const latest = reqSnap.docs[0].data();
+              setPersistedRequest(latest);
+              setRequestSent(true);
+              setSelectedHelp(latest.requestType);
+            }
+          }
         }
 
-        const snap = await getDoc(doc(db, "users", user.uid));
-        if (snap.exists() && snap.data()?.role) {
-          const savedRole = snap.data().role as Role;
-          setRole(savedRole);
-          localStorage.setItem("lderly-role", savedRole);
-        }
+        const parent = await getParentStatus();
+        setParentStatus(parent);
       } finally {
         setLoadingRole(false);
       }
     }
 
-    bootstrapRole();
-    getParentStatus().then(setParentStatus);
+    bootstrap();
   }, []);
 
   async function selectRole(newRole: Role) {
@@ -85,12 +106,31 @@ export default function App() {
     );
   }
 
+  async function sendHelpRequest(type: string) {
+    const user = auth.currentUser;
+    if (!user) return;
+
+    const payload = {
+      userId: user.uid,
+      role,
+      requestType: type,
+      createdAt: new Date().toISOString(),
+      status: "pending",
+      eta: "10 mins",
+      responder: "Dr. Ananya",
+    };
+
+    await addDoc(collection(db, "help_requests"), payload);
+
+    setSelectedHelp(type);
+    setPersistedRequest(payload);
+    setRequestSent(true);
+  }
+
   function switchRole() {
     const nextRole = role === "parent" ? "family" : "parent";
     selectRole(nextRole);
     setActiveTab("today");
-    setRequestSent(false);
-    setSelectedHelp(null);
   }
 
   const card = "rounded-[30px] bg-white/95 backdrop-blur-xl shadow-xl";
@@ -135,55 +175,8 @@ export default function App() {
     </div>
   );
 
-  const SeniorJourneyScreen = () => (
-    <div className="space-y-4">
-      <div className={`${card} p-5`}>
-        <p className="font-medium">Caretaker arrived 6:20 PM</p>
-      </div>
-      <div className={`${card} p-5`}>
-        <p className="font-medium">Medicine completed ❤️</p>
-      </div>
-      <div className={`${card} p-5`}>
-        <p className="font-medium">Next visit tomorrow at 9 AM</p>
-      </div>
-    </div>
-  );
-
-  const CareCircleJourneyScreen = () => (
-    <div className="space-y-4">
-      <div className={`${card} p-5`}>
-        <p className="font-medium">Visit duration 38 mins</p>
-      </div>
-      <div className={`${card} p-5`}>
-        <p className="font-medium">Summary: hydration normal</p>
-      </div>
-    </div>
-  );
-
-  const SeniorLoveWallScreen = () => (
-    <div className="space-y-4">
-      {[
-        [Mic, "Voice note from Rahul", "See you Sunday ❤️"],
-        [ImageIcon, "Grandchild memory", "School photo added today"],
-        [Sparkles, "Comfort reflection", "Tomorrow is another beautiful day"],
-      ].map(([Icon, title, subtitle]: any) => (
-        <div key={title} className={`${card} p-5`}>
-          <div className="flex items-center gap-3">
-            <Icon className="w-5 h-5" />
-            <div>
-              <p className="font-medium">{title}</p>
-              <p className="text-sm text-zinc-500">{subtitle}</p>
-            </div>
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-
-  const CareCircleScreen = () => (
-    <div className={`${card} p-5`}>
-      <p className="font-medium">Crisis continuity active</p>
-    </div>
+  const StableScreen = ({ text }: { text: string }) => (
+    <div className={`${card} p-5`}>{text}</div>
   );
 
   const SeniorControlScreen = () => {
@@ -194,25 +187,17 @@ export default function App() {
       "Feeling low",
     ];
 
-    if (requestSent) {
+    if (requestSent && persistedRequest) {
       return (
         <div className="space-y-4">
           <div className={`${card} p-5`}>
-            <p className="font-medium">{selectedHelp} request sent</p>
+            <p className="font-medium">
+              {persistedRequest.requestType} request active
+            </p>
             <p className="text-sm text-zinc-500">
-              Callback in 10 mins. Rahul notified ❤️
+              {persistedRequest.responder} • ETA {persistedRequest.eta}
             </p>
           </div>
-
-          <button
-            onClick={() => {
-              setRequestSent(false);
-              setSelectedHelp(null);
-            }}
-            className="w-full rounded-3xl bg-black text-white py-4"
-          >
-            Send another request
-          </button>
 
           <button
             onClick={switchRole}
@@ -229,10 +214,7 @@ export default function App() {
         {helpOptions.map((option) => (
           <button
             key={option}
-            onClick={() => {
-              setSelectedHelp(option);
-              setRequestSent(true);
-            }}
+            onClick={() => sendHelpRequest(option)}
             className={`${card} p-5 w-full text-left`}
           >
             <div className="flex items-center gap-3">
@@ -240,7 +222,7 @@ export default function App() {
               <div>
                 <p className="font-medium">{option}</p>
                 <p className="text-sm text-zinc-500">
-                  Tap to notify Care Circle
+                  Persistent Firestore logging enabled
                 </p>
               </div>
             </div>
@@ -260,9 +242,8 @@ export default function App() {
   const CareCircleControlScreen = () => (
     <div className="space-y-4">
       <div className={`${card} p-5`}>
-        <p className="font-medium">Doctor + lab + companion ops ready</p>
+        <p className="font-medium">Ops panel ready</p>
       </div>
-
       <button
         onClick={switchRole}
         className="w-full rounded-3xl bg-zinc-100 py-4"
@@ -298,24 +279,16 @@ export default function App() {
     </div>
   );
 
-  const RoleSelector = () => (
-    <div className="min-h-screen flex items-center justify-center gap-4">
-      <button onClick={() => selectRole("parent")}>Senior</button>
-      <button onClick={() => selectRole("family")}>Care Circle</button>
-    </div>
-  );
-
   if (loadingRole) return <div>Loading...</div>;
-  if (!role) return <RoleSelector />;
 
   const renderContent = () => {
     switch (activeTab) {
       case "today":
         return role === "parent" ? <SeniorTodayScreen /> : <CareCircleTodayScreen />;
       case "care":
-        return role === "parent" ? <SeniorJourneyScreen /> : <CareCircleJourneyScreen />;
+        return <StableScreen text="Journey stable" />;
       case "family":
-        return role === "parent" ? <SeniorLoveWallScreen /> : <CareCircleScreen />;
+        return <StableScreen text="Love wall stable" />;
       case "control":
         return role === "parent" ? <SeniorControlScreen /> : <CareCircleControlScreen />;
       default:
@@ -363,11 +336,7 @@ export default function App() {
             ].map(([key, Icon, label]: any) => (
               <button
                 key={key}
-                onClick={() => {
-                  setActiveTab(key);
-                  setRequestSent(false);
-                  setSelectedHelp(null);
-                }}
+                onClick={() => setActiveTab(key)}
                 className={`rounded-2xl py-2 flex flex-col items-center gap-1 ${
                   activeTab === key ? "bg-black text-white" : "text-zinc-500"
                 }`}
