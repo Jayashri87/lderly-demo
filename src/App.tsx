@@ -17,6 +17,10 @@ import {
   IndianRupee,
   FileText,
   ClipboardPlus,
+  Siren,
+  Ambulance,
+  AlertTriangle,
+  X,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -30,7 +34,6 @@ import {
 import {
   getParentStatus,
   getJourneyData,
-  getFeedData,
 } from "./services/firebase/liveData";
 import { getRoute } from "./services/maps/openRouteService";
 
@@ -42,79 +45,50 @@ type FamilyEvent = {
   reactions: number;
 };
 
-type ApprovalItem = {
-  id: number;
-  title: string;
-  approved: number;
-  total: number;
-  status: "pending" | "approved" | "hold";
-};
-
-type DoctorNote = {
-  id: number;
-  doctor: string;
-  note: string;
-  prescription: string;
-  followUp: string;
-};
-
 export default function App() {
   const [activeTab, setActiveTab] = React.useState("today");
+  const [showSOS, setShowSOS] = React.useState(false);
+  const [crisisLevel, setCrisisLevel] = React.useState<
+    "watch" | "urgent" | "critical"
+  >("watch");
+
   const [parentStatus, setParentStatus] = React.useState<any>(null);
   const [journey, setJourney] = React.useState<any>(null);
   const [realRoute, setRealRoute] = React.useState<any[]>([]);
   const [realEta, setRealEta] = React.useState(3);
   const [routeIndex, setRouteIndex] = React.useState(0);
-  const [proofDone, setProofDone] = React.useState(false);
 
-  const [familyEvents] = React.useState<FamilyEvent[]>([
+  const familyEvents: FamilyEvent[] = [
     {
       id: 1,
-      actor: "Caretaker",
-      title: "Mom completed breakfast and medication",
-      time: "8:45 AM",
-      reactions: 3,
+      actor: "Doctor",
+      title: "BP dropped slightly after evening walk",
+      time: "6:10 PM",
+      reactions: 4,
     },
     {
       id: 2,
-      actor: "Doctor",
-      title: "BP stable after consultation",
-      time: "11:20 AM",
-      reactions: 2,
-    },
-  ]);
-
-  const [approvals, setApprovals] = React.useState<ApprovalItem[]>([
-    {
-      id: 1,
-      title: "Approve Sunday companion outing",
-      approved: 1,
-      total: 3,
-      status: "pending",
-    },
-  ]);
-
-  const doctorNotes: DoctorNote[] = [
-    {
-      id: 1,
-      doctor: "Dr. Mehta",
-      note: "BP stable. Continue hydration and evening walk.",
-      prescription: "Amlodipine 5mg after dinner",
-      followUp: "Next review in 7 days",
+      actor: "Caretaker",
+      title: "Mom feels dizzy and resting in bedroom",
+      time: "6:18 PM",
+      reactions: 5,
     },
   ];
 
-  const expenseSplit = [
-    { name: "Rahul", share: "₹800" },
-    { name: "Megha", share: "₹800" },
-    { name: "Anita", share: "₹800" },
+  const doctorNotes = [
+    {
+      id: 1,
+      doctor: "Dr. Mehta",
+      note: "Watch BP tonight. Escalate if dizziness continues.",
+      prescription: "Hydration + BP tablet after dinner",
+      followUp: "Immediate if symptoms worsen",
+    },
   ];
 
   React.useEffect(() => {
     async function loadData() {
       const parent = await getParentStatus();
       const journeyData = await getJourneyData();
-      const feedData = await getFeedData();
 
       setParentStatus(parent);
       setJourney(journeyData);
@@ -140,17 +114,9 @@ export default function App() {
     if (!realRoute.length) return;
 
     const timer = setInterval(() => {
-      setRouteIndex((prev) => {
-        const next = prev + 1;
-
-        if (next < realRoute.length - 1) {
-          setRealEta((eta) => Math.max(1, eta - 1));
-          return next;
-        }
-
-        setProofDone(true);
-        return prev;
-      });
+      setRouteIndex((prev) =>
+        prev < realRoute.length - 1 ? prev + 1 : prev
+      );
     }, 3000);
 
     return () => clearInterval(timer);
@@ -170,17 +136,17 @@ export default function App() {
         <div className="absolute bottom-5 left-5 text-white">
           <p className="text-sm opacity-90">Seen {parentStatus?.lastSeen}</p>
           <h1 className="text-3xl font-semibold">
-            {parentStatus?.name || "Mom"} is calm today 💚
+            {parentStatus?.name || "Mom"} needs attention tonight 🧡
           </h1>
         </div>
       </section>
 
       <div className="grid grid-cols-2 gap-3">
         {[
-          [Moon, "Sleep", "7h good"],
-          [Droplets, "Hydration", "Strong"],
-          [Footprints, "Movement", "1,248 steps"],
-          [Pill, "Medication", "On time"],
+          [Moon, "Sleep", "Light"],
+          [Droplets, "Hydration", "Needs support"],
+          [Footprints, "Movement", "Low"],
+          [Pill, "Medication", "Scheduled"],
         ].map(([Icon, label, value]: any) => (
           <div key={label} className={`${card} p-4`}>
             <Icon className="w-5 h-5 mb-2" />
@@ -226,11 +192,16 @@ export default function App() {
 
   const FamilyScreen = () => (
     <div className="space-y-4">
-      <div className="rounded-3xl bg-black text-white p-4">
+      <div className="rounded-3xl bg-red-50 border border-red-100 p-4">
         <div className="flex items-center gap-2">
-          <Users className="w-5 h-5" />
-          <p className="font-medium">Medical Continuity Room</p>
+          <AlertTriangle className="w-5 h-5 text-red-600" />
+          <p className="font-medium">
+            Crisis level: {crisisLevel.toUpperCase()}
+          </p>
         </div>
+        <p className="text-sm text-zinc-600 mt-2">
+          Family broadcast active. Doctor note continuity preserved.
+        </p>
       </div>
 
       {familyEvents.map((event) => (
@@ -242,38 +213,10 @@ export default function App() {
           <p className="text-sm text-zinc-600 mt-2">{event.title}</p>
           <div className="flex items-center gap-2 mt-3 text-pink-600">
             <MessageCircleHeart className="w-4 h-4" />
-            <span className="text-xs">{event.reactions} reactions</span>
+            <span className="text-xs">{event.reactions} sibling reactions</span>
           </div>
         </div>
       ))}
-
-      {approvals.map((item) => (
-        <div key={item.id} className="rounded-3xl bg-amber-50 border border-amber-100 p-4">
-          <div className="flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 text-amber-600" />
-            <p className="font-medium">{item.title}</p>
-          </div>
-          <p className="text-xs text-zinc-600 mt-2">
-            {item.approved}/{item.total} approvals
-          </p>
-        </div>
-      ))}
-
-      <div className={`${card} p-4`}>
-        <div className="flex items-center gap-2 mb-3">
-          <IndianRupee className="w-4 h-4" />
-          <p className="font-medium">Expense split</p>
-        </div>
-        {expenseSplit.map((member) => (
-          <div
-            key={member.name}
-            className="flex justify-between text-sm text-zinc-600"
-          >
-            <span>{member.name}</span>
-            <span>{member.share}</span>
-          </div>
-        ))}
-      </div>
 
       {doctorNotes.map((note) => (
         <div key={note.id} className="rounded-3xl bg-blue-50 border border-blue-100 p-4">
@@ -282,17 +225,20 @@ export default function App() {
             <p className="font-medium">{note.doctor}</p>
           </div>
           <p className="text-sm text-zinc-700">{note.note}</p>
-
-          <div className="mt-3 rounded-2xl bg-white p-3">
-            <div className="flex items-center gap-2 mb-1">
-              <ClipboardPlus className="w-4 h-4 text-emerald-600" />
-              <p className="text-sm font-medium">Prescription</p>
-            </div>
-            <p className="text-sm text-zinc-600">{note.prescription}</p>
-            <p className="text-xs text-zinc-500 mt-2">{note.followUp}</p>
-          </div>
+          <p className="text-sm text-zinc-600 mt-2">{note.prescription}</p>
+          <p className="text-xs text-zinc-500 mt-1">{note.followUp}</p>
         </div>
       ))}
+
+      <div className="rounded-3xl bg-emerald-50 border border-emerald-100 p-4">
+        <div className="flex items-center gap-2">
+          <Ambulance className="w-4 h-4 text-emerald-600" />
+          <p className="font-medium">Ambulance dispatch ready</p>
+        </div>
+        <p className="text-sm text-zinc-600 mt-2">
+          Nearest verified hospital partner can be triggered after family approval.
+        </p>
+      </div>
     </div>
   );
 
@@ -309,6 +255,49 @@ export default function App() {
             {label}
           </div>
         ))}
+      </div>
+    </div>
+  );
+
+  const SOSModal = () => (
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-6">
+      <div className="bg-white rounded-[30px] p-6 w-full max-w-sm shadow-2xl">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Siren className="w-5 h-5 text-red-600" />
+            <p className="font-semibold">Emergency escalation</p>
+          </div>
+          <button onClick={() => setShowSOS(false)}>
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        <p className="text-sm text-zinc-600 mt-4">
+          Alert siblings, caretaker, and prepare ambulance-ready dispatch.
+        </p>
+
+        <div className="grid grid-cols-3 gap-2 mt-4">
+          {["watch", "urgent", "critical"].map((level) => (
+            <button
+              key={level}
+              onClick={() => setCrisisLevel(level as any)}
+              className={`rounded-2xl py-2 text-sm ${
+                crisisLevel === level
+                  ? "bg-red-500 text-white"
+                  : "bg-zinc-100"
+              }`}
+            >
+              {level}
+            </button>
+          ))}
+        </div>
+
+        <button
+          onClick={() => setShowSOS(false)}
+          className="mt-4 w-full rounded-2xl bg-black text-white py-3"
+        >
+          Confirm family broadcast
+        </button>
       </div>
     </div>
   );
@@ -335,9 +324,14 @@ export default function App() {
           <motion.div key={activeTab}>{renderContent()}</motion.div>
         </AnimatePresence>
 
-        <button className="fixed bottom-24 right-6 rounded-full bg-red-500 text-white p-4 shadow-2xl animate-pulse">
+        <button
+          onClick={() => setShowSOS(true)}
+          className="fixed bottom-24 right-6 rounded-full bg-red-500 text-white p-4 shadow-2xl animate-pulse"
+        >
           <ShieldAlert className="w-6 h-6" />
         </button>
+
+        {showSOS && <SOSModal />}
 
         <div className="fixed bottom-0 left-0 right-0 p-4">
           <div className="max-w-md mx-auto grid grid-cols-4 gap-2 rounded-3xl bg-white/95 p-2 shadow-2xl">
