@@ -8,19 +8,16 @@ import {
   Stethoscope,
   FlaskConical,
   HeartHandshake,
-  Moon,
-  Droplets,
-  Footprints,
   Pill,
-  MessageCircleHeart,
-  CheckCircle2,
-  IndianRupee,
-  FileText,
-  ClipboardPlus,
   Siren,
   Ambulance,
   AlertTriangle,
   X,
+  Heart,
+  Clock3,
+  HelpingHand,
+  UserRoundCheck,
+  Phone,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -31,21 +28,18 @@ import {
   Polyline,
   Circle,
 } from "react-leaflet";
+import { doc, getDoc, setDoc } from "firebase/firestore";
+import { auth, db } from "./firebase";
 import {
   getParentStatus,
   getJourneyData,
 } from "./services/firebase/liveData";
 import { getRoute } from "./services/maps/openRouteService";
 
-type FamilyEvent = {
-  id: number;
-  actor: string;
-  title: string;
-  time: string;
-  reactions: number;
-};
+type Role = "parent" | "family" | null;
 
 export default function App() {
+  const [role, setRole] = React.useState<Role>(null);
   const [activeTab, setActiveTab] = React.useState("today");
   const [showSOS, setShowSOS] = React.useState(false);
   const [crisisLevel, setCrisisLevel] = React.useState<
@@ -55,35 +49,38 @@ export default function App() {
   const [parentStatus, setParentStatus] = React.useState<any>(null);
   const [journey, setJourney] = React.useState<any>(null);
   const [realRoute, setRealRoute] = React.useState<any[]>([]);
-  const [realEta, setRealEta] = React.useState(3);
   const [routeIndex, setRouteIndex] = React.useState(0);
+  const [loadingRole, setLoadingRole] = React.useState(true);
 
-  const familyEvents: FamilyEvent[] = [
-    {
-      id: 1,
-      actor: "Doctor",
-      title: "BP dropped slightly after evening walk",
-      time: "6:10 PM",
-      reactions: 4,
-    },
-    {
-      id: 2,
-      actor: "Caretaker",
-      title: "Mom feels dizzy and resting in bedroom",
-      time: "6:18 PM",
-      reactions: 5,
-    },
-  ];
+  React.useEffect(() => {
+    async function bootstrapRole() {
+      try {
+        const cachedRole = localStorage.getItem("lderly-role");
+        if (cachedRole) setRole(cachedRole as Role);
 
-  const doctorNotes = [
-    {
-      id: 1,
-      doctor: "Dr. Mehta",
-      note: "Watch BP tonight. Escalate if dizziness continues.",
-      prescription: "Hydration + BP tablet after dinner",
-      followUp: "Immediate if symptoms worsen",
-    },
-  ];
+        const user = auth.currentUser;
+        if (!user) {
+          setLoadingRole(false);
+          return;
+        }
+
+        const ref = doc(db, "users", user.uid);
+        const snap = await getDoc(ref);
+
+        if (snap.exists() && snap.data()?.role) {
+          const savedRole = snap.data().role as Role;
+          setRole(savedRole);
+          localStorage.setItem("lderly-role", savedRole);
+        }
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setLoadingRole(false);
+      }
+    }
+
+    bootstrapRole();
+  }, []);
 
   React.useEffect(() => {
     async function loadData() {
@@ -104,7 +101,6 @@ export default function App() {
       );
 
       setRealRoute(routeData.coordinates);
-      setRealEta(routeData.etaMin || 3);
     }
 
     loadData();
@@ -112,7 +108,6 @@ export default function App() {
 
   React.useEffect(() => {
     if (!realRoute.length) return;
-
     const timer = setInterval(() => {
       setRouteIndex((prev) =>
         prev < realRoute.length - 1 ? prev + 1 : prev
@@ -122,9 +117,72 @@ export default function App() {
     return () => clearInterval(timer);
   }, [realRoute]);
 
+  async function selectRole(newRole: Role) {
+    setRole(newRole);
+    localStorage.setItem("lderly-role", newRole as string);
+
+    const user = auth.currentUser;
+    if (!user) return;
+
+    const ref = doc(db, "users", user.uid);
+    await setDoc(
+      ref,
+      {
+        role: newRole,
+        updatedAt: new Date().toISOString(),
+      },
+      { merge: true }
+    );
+  }
+
   const card = "rounded-[30px] bg-white/95 backdrop-blur-xl shadow-xl";
 
-  const TodayScreen = () => (
+  const ParentTodayScreen = () => (
+    <div className="space-y-4">
+      <section className="relative rounded-[40px] overflow-hidden shadow-2xl h-72">
+        <img
+          src="https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?q=80&w=1200"
+          className="absolute inset-0 h-full w-full object-cover"
+          alt="Parent"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
+        <div className="absolute bottom-5 left-5 text-white">
+          <p className="text-sm opacity-90">Good evening</p>
+          <h1 className="text-3xl font-semibold">
+            Your evening is calm and supported ❤️
+          </h1>
+        </div>
+      </section>
+
+      <div className="grid grid-cols-2 gap-3">
+        <div className={`${card} p-4`}>
+          <Pill className="w-5 h-5 mb-2" />
+          <p className="text-xs text-zinc-500">Do now</p>
+          <p className="font-medium">BP tablet + water</p>
+        </div>
+
+        <div className={`${card} p-4`}>
+          <Heart className="w-5 h-5 mb-2" />
+          <p className="text-xs text-zinc-500">Family love</p>
+          <p className="font-medium">Rahul will call at 8 PM</p>
+        </div>
+
+        <div className={`${card} p-4`}>
+          <Clock3 className="w-5 h-5 mb-2" />
+          <p className="text-xs text-zinc-500">Who is coming</p>
+          <p className="font-medium">Caretaker in 20 mins</p>
+        </div>
+
+        <div className={`${card} p-4`}>
+          <HelpingHand className="w-5 h-5 mb-2" />
+          <p className="text-xs text-zinc-500">Need help</p>
+          <p className="font-medium">Call family / SOS</p>
+        </div>
+      </div>
+    </div>
+  );
+
+  const FamilyTodayScreen = () => (
     <div className="space-y-4">
       <section className="relative rounded-[40px] overflow-hidden shadow-2xl h-72">
         <img
@@ -140,25 +198,10 @@ export default function App() {
           </h1>
         </div>
       </section>
-
-      <div className="grid grid-cols-2 gap-3">
-        {[
-          [Moon, "Sleep", "Light"],
-          [Droplets, "Hydration", "Needs support"],
-          [Footprints, "Movement", "Low"],
-          [Pill, "Medication", "Scheduled"],
-        ].map(([Icon, label, value]: any) => (
-          <div key={label} className={`${card} p-4`}>
-            <Icon className="w-5 h-5 mb-2" />
-            <p className="text-xs text-zinc-500">{label}</p>
-            <p className="font-medium">{value}</p>
-          </div>
-        ))}
-      </div>
     </div>
   );
 
-  const JourneyScreen = () => {
+  const FamilyJourneyScreen = () => {
     const currentPos =
       realRoute.length > 0
         ? realRoute[routeIndex]
@@ -190,6 +233,48 @@ export default function App() {
     );
   };
 
+  const ParentJourneyScreen = () => (
+    <div className="space-y-4">
+      <div className="relative h-[300px] rounded-[40px] overflow-hidden shadow-2xl">
+        <MapContainer center={[12.9716, 77.5946]} zoom={14} style={{ height: "100%" }}>
+          <TileLayer
+            attribution="&copy; OpenStreetMap contributors"
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          />
+          <Marker position={[12.9716, 77.5946]}>
+            <Popup>Home support arriving</Popup>
+          </Marker>
+        </MapContainer>
+      </div>
+
+      <div className="grid grid-cols-2 gap-3">
+        <div className={`${card} p-4`}>
+          <UserRoundCheck className="w-5 h-5 mb-2" />
+          <p className="text-xs text-zinc-500">Caretaker</p>
+          <p className="font-medium">Arriving in 20 mins</p>
+        </div>
+
+        <div className={`${card} p-4`}>
+          <Stethoscope className="w-5 h-5 mb-2" />
+          <p className="text-xs text-zinc-500">Doctor</p>
+          <p className="font-medium">Consult at 7 PM</p>
+        </div>
+
+        <div className={`${card} p-4`}>
+          <Phone className="w-5 h-5 mb-2" />
+          <p className="text-xs text-zinc-500">Rahul</p>
+          <p className="font-medium">Video call tonight</p>
+        </div>
+
+        <div className={`${card} p-4`}>
+          <HeartHandshake className="w-5 h-5 mb-2" />
+          <p className="text-xs text-zinc-500">Companion</p>
+          <p className="font-medium">Outing tomorrow</p>
+        </div>
+      </div>
+    </div>
+  );
+
   const FamilyScreen = () => (
     <div className="space-y-4">
       <div className="rounded-3xl bg-red-50 border border-red-100 p-4">
@@ -199,45 +284,13 @@ export default function App() {
             Crisis level: {crisisLevel.toUpperCase()}
           </p>
         </div>
-        <p className="text-sm text-zinc-600 mt-2">
-          Family broadcast active. Doctor note continuity preserved.
-        </p>
       </div>
-
-      {familyEvents.map((event) => (
-        <div key={event.id} className={`${card} p-4`}>
-          <div className="flex justify-between">
-            <p className="font-medium">{event.actor}</p>
-            <p className="text-xs text-zinc-500">{event.time}</p>
-          </div>
-          <p className="text-sm text-zinc-600 mt-2">{event.title}</p>
-          <div className="flex items-center gap-2 mt-3 text-pink-600">
-            <MessageCircleHeart className="w-4 h-4" />
-            <span className="text-xs">{event.reactions} sibling reactions</span>
-          </div>
-        </div>
-      ))}
-
-      {doctorNotes.map((note) => (
-        <div key={note.id} className="rounded-3xl bg-blue-50 border border-blue-100 p-4">
-          <div className="flex items-center gap-2 mb-2">
-            <FileText className="w-4 h-4 text-blue-600" />
-            <p className="font-medium">{note.doctor}</p>
-          </div>
-          <p className="text-sm text-zinc-700">{note.note}</p>
-          <p className="text-sm text-zinc-600 mt-2">{note.prescription}</p>
-          <p className="text-xs text-zinc-500 mt-1">{note.followUp}</p>
-        </div>
-      ))}
 
       <div className="rounded-3xl bg-emerald-50 border border-emerald-100 p-4">
         <div className="flex items-center gap-2">
           <Ambulance className="w-4 h-4 text-emerald-600" />
           <p className="font-medium">Ambulance dispatch ready</p>
         </div>
-        <p className="text-sm text-zinc-600 mt-2">
-          Nearest verified hospital partner can be triggered after family approval.
-        </p>
       </div>
     </div>
   );
@@ -272,10 +325,6 @@ export default function App() {
           </button>
         </div>
 
-        <p className="text-sm text-zinc-600 mt-4">
-          Alert siblings, caretaker, and prepare ambulance-ready dispatch.
-        </p>
-
         <div className="grid grid-cols-3 gap-2 mt-4">
           {["watch", "urgent", "critical"].map((level) => (
             <button
@@ -302,18 +351,64 @@ export default function App() {
     </div>
   );
 
+  const RoleSelector = () => (
+    <div className="min-h-screen bg-gradient-to-b from-[#faf7f2] to-[#f3eee7] flex items-center justify-center p-6">
+      <div className="w-full max-w-md">
+        <div className="rounded-[40px] bg-white p-6 shadow-2xl">
+          <h1 className="text-2xl font-semibold">Continue as</h1>
+          <div className="space-y-3 mt-6">
+            <button
+              onClick={() => selectRole("parent")}
+              className="w-full rounded-3xl bg-black text-white py-4"
+            >
+              👨‍🦳 Parent
+            </button>
+            <button
+              onClick={() => selectRole("family")}
+              className="w-full rounded-3xl bg-zinc-100 py-4"
+            >
+              👨‍👩‍👧 Family
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  if (loadingRole) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#faf7f2]">
+        Loading...
+      </div>
+    );
+  }
+
+  if (!role) return <RoleSelector />;
+
   const renderContent = () => {
     switch (activeTab) {
       case "today":
-        return <TodayScreen />;
+        return role === "parent" ? (
+          <ParentTodayScreen />
+        ) : (
+          <FamilyTodayScreen />
+        );
       case "care":
-        return <JourneyScreen />;
+        return role === "parent" ? (
+          <ParentJourneyScreen />
+        ) : (
+          <FamilyJourneyScreen />
+        );
       case "family":
         return <FamilyScreen />;
       case "control":
         return <ControlScreen />;
       default:
-        return <TodayScreen />;
+        return role === "parent" ? (
+          <ParentTodayScreen />
+        ) : (
+          <FamilyTodayScreen />
+        );
     }
   };
 
@@ -321,7 +416,9 @@ export default function App() {
     <div className="min-h-screen bg-gradient-to-b from-[#faf7f2] to-[#f3eee7] flex justify-center p-4">
       <div className="w-full max-w-md pb-28">
         <AnimatePresence mode="wait">
-          <motion.div key={activeTab}>{renderContent()}</motion.div>
+          <motion.div key={`${role}-${activeTab}`}>
+            {renderContent()}
+          </motion.div>
         </AnimatePresence>
 
         <button
