@@ -16,11 +16,12 @@ import {
   Phone,
   Image as ImageIcon,
   Sparkles,
-  BellRing,
-  Utensils,
   Mic,
   CheckCircle2,
   Stethoscope,
+  MapPin,
+  ClipboardList,
+  AlertTriangle,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { doc, getDoc, setDoc } from "firebase/firestore";
@@ -122,6 +123,72 @@ export default function App() {
     </div>
   );
 
+  const SeniorJourneyScreen = () => (
+    <div className="space-y-4">
+      <div className={`${card} p-5`}>
+        <div className="flex items-center gap-3">
+          <MapPin className="w-5 h-5" />
+          <div>
+            <p className="font-medium">Caretaker arrived</p>
+            <p className="text-sm text-zinc-500">Reached home at 6:20 PM</p>
+          </div>
+        </div>
+      </div>
+
+      <div className={`${card} p-5`}>
+        <div className="flex items-center gap-3">
+          <CheckCircle2 className="w-5 h-5" />
+          <div>
+            <p className="font-medium">Medicine completed</p>
+            <p className="text-sm text-zinc-500">
+              BP tablet and dinner support done ❤️
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className={`${card} p-5`}>
+        <p className="font-medium">Next visit tomorrow at 9 AM</p>
+      </div>
+    </div>
+  );
+
+  const CareCircleJourneyScreen = () => (
+    <div className="space-y-4">
+      <div className={`${card} p-5`}>
+        <div className="flex items-center gap-3">
+          <MapPin className="w-5 h-5" />
+          <div>
+            <p className="font-medium">Arrived 6:20 PM</p>
+            <p className="text-sm text-zinc-500">Visit duration 38 mins</p>
+          </div>
+        </div>
+      </div>
+
+      <div className={`${card} p-5`}>
+        <div className="flex items-center gap-3">
+          <ClipboardList className="w-5 h-5" />
+          <div>
+            <p className="font-medium">Visit summary</p>
+            <p className="text-sm text-zinc-500">
+              Medicine given, hydration normal, mood stable
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className={`${card} p-5`}>
+        <div className="flex items-center gap-3">
+          <AlertTriangle className="w-5 h-5" />
+          <div>
+            <p className="font-medium">Escalation</p>
+            <p className="text-sm text-zinc-500">No escalation required</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
   const SeniorLoveWallScreen = () => (
     <div className="space-y-4">
       {[
@@ -167,12 +234,11 @@ export default function App() {
               <div>
                 <p className="font-medium">{selectedHelp} request sent</p>
                 <p className="text-sm text-zinc-500">
-                  Dr. Ananya will call in 10 mins. Rahul also notified ❤️
+                  Callback in 10 mins. Rahul notified ❤️
                 </p>
               </div>
             </div>
           </div>
-
           <button
             onClick={() => {
               setRequestSent(false);
@@ -218,10 +284,6 @@ export default function App() {
     </div>
   );
 
-  const StablePlaceholder = ({ label }: { label: string }) => (
-    <div className={`${card} p-5`}>{label}</div>
-  );
-
   const SOSModal = () => (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-6">
       <div className="bg-white rounded-[30px] p-6 w-full max-w-sm shadow-2xl">
@@ -253,7 +315,7 @@ export default function App() {
       case "today":
         return role === "parent" ? <SeniorTodayScreen /> : <CareCircleTodayScreen />;
       case "care":
-        return <StablePlaceholder label="Journey stable" />;
+        return role === "parent" ? <SeniorJourneyScreen /> : <CareCircleJourneyScreen />;
       case "family":
         return role === "parent" ? <SeniorLoveWallScreen /> : <CareCircleScreen />;
       case "control":
