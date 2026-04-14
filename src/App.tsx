@@ -130,15 +130,11 @@ export default function App() {
           [Footprints, "Movement", "1,248 steps"],
           [Pill, "Medication", "On time"],
         ].map(([Icon, label, value]: any) => (
-          <motion.div
-            key={label}
-            whileHover={{ y: -2 }}
-            className={`${card} p-4`}
-          >
+          <div key={label} className={`${card} p-4`}>
             <Icon className="w-5 h-5 mb-2" />
             <p className="text-xs text-zinc-500">{label}</p>
             <p className="font-medium">{value}</p>
-          </motion.div>
+          </div>
         ))}
       </div>
 
@@ -153,7 +149,6 @@ export default function App() {
         </p>
       </div>
 
-      {/* NEW: tomorrow confidence */}
       <div className="rounded-3xl bg-indigo-50 border border-indigo-100 p-4">
         <div className="flex items-center gap-2 mb-2">
           <CloudSun className="w-4 h-4 text-indigo-600" />
@@ -165,55 +160,120 @@ export default function App() {
         </p>
       </div>
 
-      {/* NEW: caretaker voice proof */}
       <div className={`${card} p-4`}>
         <div className="flex items-center gap-2 mb-2">
           <Mic className="w-4 h-4 text-emerald-600" />
           <p className="font-medium">Voice note from caretaker</p>
         </div>
         <p className="text-sm text-zinc-600 italic">
-          “Aunty had breakfast well, smiled after tea, and enjoyed the balcony
-          sunlight this morning.”
+          “Aunty had breakfast well, smiled after tea, and enjoyed the balcony sunlight.”
         </p>
       </div>
 
-      {/* NEW: early trend prediction */}
       <div className="rounded-3xl bg-amber-50 border border-amber-100 p-4">
         <div className="flex items-center gap-2 mb-2">
           <TrendingUp className="w-4 h-4 text-amber-600" />
           <p className="font-medium">Early trend signal</p>
         </div>
         <p className="text-sm text-zinc-600">
-          Hydration trend is slightly lower than yesterday. Suggest adding one
-          coconut water tomorrow afternoon.
+          Hydration trend is slightly lower than yesterday. Suggest coconut water tomorrow.
         </p>
-      </div>
-
-      <div className={`${card} p-4 flex items-center justify-between`}>
-        <div>
-          <p className="text-sm font-medium">Family room is active</p>
-          <p className="text-xs text-zinc-500">
-            3 siblings viewed tomorrow’s confidence
-          </p>
-        </div>
-        <div className="flex gap-2 text-xs text-zinc-600">
-          <div className="flex items-center gap-1">
-            <Heart className="w-3 h-3 text-rose-500" />
-            2
-          </div>
-          <div className="flex items-center gap-1">
-            <Eye className="w-3 h-3" />
-            3
-          </div>
-        </div>
       </div>
     </div>
   );
 
-  // keep Journey, Feed, Control exactly same as previous stable version
-  const JourneyScreen = () => <div className={`${card} p-6`}>Journey stable</div>;
-  const FeedScreen = () => <div className={`${card} p-6`}>Feed stable</div>;
-  const ControlScreen = () => <div className={`${card} p-6`}>Control stable</div>;
+  const JourneyScreen = () => {
+    const currentPos =
+      realRoute.length > 0
+        ? realRoute[routeIndex]
+        : journey
+        ? [journey.lat, journey.lng]
+        : [12.9716, 77.5946];
+
+    const destination = journey
+      ? [journey.lat + 0.004, journey.lng + 0.004]
+      : [12.9756, 77.5986];
+
+    const arrived =
+      realRoute.length > 0 && routeIndex >= realRoute.length - 2;
+
+    return (
+      <div className="space-y-4">
+        <div className="rounded-full bg-black text-white px-4 py-2 text-xs inline-flex items-center gap-2">
+          <Users className="w-4 h-4" />
+          4 family members tracking live
+        </div>
+
+        <div className={`${card} p-4`}>
+          <div className="flex items-center justify-between text-[10px] text-zinc-500">
+            {["Accepted", "En route", "Arrived", "Task", "Proof", "Done"].map(
+              (step, i) => (
+                <div key={step} className="flex flex-col items-center flex-1">
+                  <div
+                    className={`w-3 h-3 rounded-full ${
+                      i <= (proofDone ? 5 : arrived ? 2 : 1)
+                        ? "bg-black"
+                        : "bg-zinc-300"
+                    }`}
+                  />
+                  <span className="mt-2">{step}</span>
+                </div>
+              )
+            )}
+          </div>
+        </div>
+
+        <div className="relative h-[440px] rounded-[40px] overflow-hidden shadow-2xl">
+          <MapContainer center={currentPos as any} zoom={14} style={{ height: "100%" }}>
+            <TileLayer
+              attribution="&copy; OpenStreetMap contributors"
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            />
+            <Marker position={currentPos as any}>
+              <Popup>{journey?.caretakerName || "Caretaker"}</Popup>
+            </Marker>
+            <Marker position={destination as any}>
+              <Popup>Parent Home</Popup>
+            </Marker>
+            <Polyline positions={realRoute} />
+            <Circle center={destination as any} radius={80} />
+          </MapContainer>
+
+          <div className="absolute top-4 left-4 rounded-3xl bg-white/90 px-4 py-3 shadow-lg">
+            {journey?.caretakerName} •{" "}
+            {proofDone ? "Completed" : arrived ? "Arrived" : `${realEta} mins`}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const FeedScreen = () => (
+    <div className="space-y-3">
+      {feed.map((item) => (
+        <div key={item.id} className="rounded-[30px] bg-white shadow-xl p-4">
+          {item.title}
+        </div>
+      ))}
+    </div>
+  );
+
+  const ControlScreen = () => (
+    <div className="space-y-4">
+      <div className="flex gap-3 overflow-x-auto">
+        {[
+          [Stethoscope, "Doctor Consult"],
+          [FlaskConical, "Lab Pickup"],
+          [HeartHandshake, "Companion Outing"],
+        ].map(([Icon, label]: any) => (
+          <div key={label} className={`${card} p-5 min-w-[220px]`}>
+            <Icon className="w-5 h-5 mb-2" />
+            {label}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 
   const renderContent = () => {
     switch (activeTab) {
@@ -234,15 +294,7 @@ export default function App() {
     <div className="min-h-screen bg-gradient-to-b from-[#faf7f2] to-[#f3eee7] flex justify-center p-4">
       <div className="w-full max-w-md pb-28">
         <AnimatePresence mode="wait">
-          <motion.div
-            key={activeTab}
-            initial={{ opacity: 0, x: 12 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -12 }}
-            transition={{ duration: 0.25 }}
-          >
-            {renderContent()}
-          </motion.div>
+          <motion.div key={activeTab}>{renderContent()}</motion.div>
         </AnimatePresence>
 
         <button
@@ -253,7 +305,7 @@ export default function App() {
         </button>
 
         <div className="fixed bottom-0 left-0 right-0 p-4">
-          <div className="max-w-md mx-auto grid grid-cols-4 gap-2 rounded-3xl bg-white/95 backdrop-blur-xl p-2 shadow-2xl">
+          <div className="max-w-md mx-auto grid grid-cols-4 gap-2 rounded-3xl bg-white/95 p-2 shadow-2xl">
             {[
               ["today", Home, "Today"],
               ["care", MapPinned, "Journey"],
