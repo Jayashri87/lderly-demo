@@ -9,6 +9,10 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@react-google-maps/api": "^2.19.0",
+    "firebase": "^12.12.1",
+    "framer-motion": "^11.0.0",
+    "lucide-react": "^0.367.0",
     "next": "16.2.4",
     "react": "19.2.4",
     "react-dom": "19.2.4"
